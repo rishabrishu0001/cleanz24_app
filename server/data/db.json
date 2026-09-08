@@ -1,0 +1,368 @@
+{
+  "users": [
+    {
+      "id": "usr_rishab",
+      "name": "Rishab Singh",
+      "phone": "+91 9310590680",
+      "email": "rishabnegi333@gmail.com",
+      "role": "customer",
+      "walletBalance": 2450,
+      "addresses": [
+        {
+          "id": "addr_work",
+          "title": "Work",
+          "badge": "Frequently used",
+          "address": "2735, 27th floor super astilis, Sector 94, Noida",
+          "phone": "9310590680",
+          "lat": 28.5445,
+          "lng": 77.3292,
+          "type": "work"
+        },
+        {
+          "id": "addr_home",
+          "title": "Home",
+          "badge": "Frequently used",
+          "address": "Gali no. 12 baba surdas, Sector 41, Noida",
+          "phone": "9138004800",
+          "lat": 28.5638,
+          "lng": 77.3627,
+          "type": "home"
+        }
+      ],
+      "createdAt": "2026-09-03T06:56:55.100Z"
+    },
+    {
+      "id": "usr_admin",
+      "name": "Cleanz24 Master Admin",
+      "phone": "+91 9999999999",
+      "email": "admin@cleanz24.com",
+      "role": "admin",
+      "walletBalance": 0,
+      "createdAt": "2026-09-03T06:56:55.114Z"
+    },
+    {
+      "id": "usr_1788428488266",
+      "name": "Aman Sharma",
+      "phone": "+91 9876543210",
+      "email": "aman.sharma@example.com",
+      "role": "customer",
+      "walletBalance": 500,
+      "addresses": [
+        {
+          "id": "addr_1788428488266",
+          "title": "Home",
+          "badge": "Saved",
+          "address": "Sector 62, Noida",
+          "phone": "+91 9876543210",
+          "type": "home"
+        }
+      ]
+    }
+  ],
+  "stores": [],
+  "valets": [
+    {
+      "id": "valet_1",
+      "name": "David Santos",
+      "phone": "+91 91380 04800",
+      "rating": "4.9 ⭐",
+      "vehicle": "Cleanz EV Van #14",
+      "status": "Active",
+      "currentLocation": "Sector 41, Noida",
+      "assignedOrdersCount": 3
+    },
+    {
+      "id": "valet_2",
+      "name": "Amit Sharma",
+      "phone": "+91 98765 43210",
+      "rating": "4.8 ⭐",
+      "vehicle": "Cleanz EV Scooter #08",
+      "status": "Active",
+      "currentLocation": "Sector 94, Noida",
+      "assignedOrdersCount": 2
+    },
+    {
+      "id": "valet_3",
+      "name": "Rajesh Kumar",
+      "phone": "+91 98123 45678",
+      "rating": "4.9 ⭐",
+      "vehicle": "Cleanz EV Van #22",
+      "status": "On Delivery",
+      "currentLocation": "Indirapuram, Ghaziabad",
+      "assignedOrdersCount": 4
+    }
+  ],
+  "services": [
+    {
+      "id": "wf_bag",
+      "name": "Standard Wash & Fold Bag",
+      "price": 49,
+      "unit": "/ kg",
+      "category": "Laundry",
+      "turnaround": "24 Hours"
+    },
+    {
+      "id": "dc_suit",
+      "name": "2-Piece Men / Women Suit",
+      "price": 399,
+      "unit": "/ suit",
+      "category": "Dry Cleaning",
+      "turnaround": "48 Hours"
+    },
+    {
+      "id": "dc_shirt",
+      "name": "Premium Shirt / Kurta",
+      "price": 99,
+      "unit": "/ piece",
+      "category": "Dry Cleaning",
+      "turnaround": "24 Hours"
+    },
+    {
+      "id": "sp_trousers",
+      "name": "Steam Press - Trousers / Jeans",
+      "price": 45,
+      "unit": "/ piece",
+      "category": "Steam Press",
+      "turnaround": "Same Day"
+    },
+    {
+      "id": "dc_saree",
+      "name": "Silk / Designer Saree Care",
+      "price": 299,
+      "unit": "/ saree",
+      "category": "Dry Cleaning",
+      "turnaround": "48 Hours"
+    },
+    {
+      "id": "dc_blanket",
+      "name": "Heavy Winter Blanket / Quilt",
+      "price": 449,
+      "unit": "/ item",
+      "category": "Home Care",
+      "turnaround": "48 Hours"
+    },
+    {
+      "id": "dc_shoes",
+      "name": "Sneakers & Leather Shoe Spa",
+      "price": 349,
+      "unit": "/ pair",
+      "category": "Shoe Spa",
+      "turnaround": "72 Hours"
+    }
+  ],
+  "orders": [
+    {
+      "id": "CZ-740480",
+      "customerId": "usr_rishab",
+      "customerName": "Rishab Singh",
+      "customerPhone": "+91 9310590680",
+      "statusStep": 1,
+      "status": "Pickup Scheduled",
+      "progress": 10,
+      "deliveryTime": "Tomorrow by 06:00 PM",
+      "pickupDate": "Today (Aug 31)",
+      "pickupSlot": "11:30 AM - 01:30 PM",
+      "address": "Ground Floor, Shop No. 9, C Block Market, Sector 41, Noida, Uttar Pradesh 201303",
+      "studioId": 1,
+      "studioName": "Cleanz24 - Sector 41 Noida",
+      "driver": {
+        "id": "valet_1",
+        "name": "David Santos",
+        "phone": "+91 91380 04800",
+        "rating": "4.9 ⭐",
+        "vehicle": "Cleanz EV Van #14"
+      },
+      "items": [
+        {
+          "id": "wf_bag",
+          "name": "Standard Wash & Fold Bag",
+          "price": 49,
+          "unit": "/ kg",
+          "quantity": 5,
+          "image": "/images/hero.jpg"
+        },
+        {
+          "id": "dc_suit",
+          "name": "2-Piece Men / Women Suit",
+          "price": 399,
+          "unit": "/ suit",
+          "quantity": 1,
+          "image": "/images/drycleaning.jpg"
+        }
+      ],
+      "totalPrice": 245,
+      "paymentMethod": "UPI / COD",
+      "paymentStatus": "Pending"
+    },
+    {
+      "id": "CZ-257524",
+      "customerId": "usr_rishab",
+      "customerName": "Rishab Singh",
+      "customerPhone": "+91 9310590680",
+      "statusStep": 1,
+      "status": "Pickup Scheduled",
+      "progress": 10,
+      "deliveryTime": "Tomorrow by 06:00 PM",
+      "pickupDate": "Today",
+      "pickupSlot": "12:00 PM",
+      "address": "Sector 94, Noida",
+      "studioId": 1,
+      "studioName": "Cleanz24 - Sector 41 Noida",
+      "driver": {
+        "id": "valet_1",
+        "name": "David Santos",
+        "phone": "+91 91380 04800",
+        "rating": "4.9 ⭐",
+        "vehicle": "Cleanz EV Van #14",
+        "status": "Active",
+        "currentLocation": "Sector 41, Noida",
+        "assignedOrdersCount": 3
+      },
+      "items": [
+        {
+          "id": "wf_bag",
+          "name": "Standard Wash & Fold Bag",
+          "price": 49,
+          "quantity": 5,
+          "unit": "/ kg"
+        }
+      ],
+      "totalPrice": 499,
+      "paymentMethod": "UPI",
+      "paymentStatus": "Pending",
+      "createdAt": "2026-09-03T07:03:20.392Z"
+    },
+    {
+      "id": "CZ-849201",
+      "customerId": "usr_rishab",
+      "customerName": "Rishab Singh",
+      "customerPhone": "+91 9310590680",
+      "statusStep": 3,
+      "deliveryTime": "Today by 06:30 PM",
+      "status": "German Eco Wash & Stain Care",
+      "progress": 50,
+      "pickupDate": "Today (Aug 31)",
+      "pickupSlot": "11:30 AM",
+      "address": "Sector 41, Noida, C Block Market",
+      "studioId": 1,
+      "studioName": "Cleanz24 - Sector 41 Noida",
+      "driver": {
+        "name": "David Santos",
+        "phone": "+91 91380 04800",
+        "rating": "4.9 ⭐",
+        "vehicle": "Cleanz EV Van #14"
+      },
+      "items": [
+        {
+          "id": "wf_bag",
+          "name": "Standard Wash & Fold Bag",
+          "price": 49,
+          "quantity": 5,
+          "unit": "/ kg"
+        },
+        {
+          "id": "dc_suit",
+          "name": "2-Piece Men / Women Suit",
+          "price": 399,
+          "quantity": 1,
+          "unit": "/ suit"
+        }
+      ],
+      "totalPrice": 644,
+      "paymentStatus": "Paid",
+      "createdAt": "2026-09-03T02:56:55.115Z"
+    },
+    {
+      "id": "CZ-849188",
+      "customerId": "usr_demo2",
+      "customerName": "Pooja Verma",
+      "customerPhone": "+91 98112 34567",
+      "statusStep": 2,
+      "deliveryTime": "Tomorrow by 04:00 PM",
+      "status": "Pickup Completed",
+      "progress": 25,
+      "pickupDate": "Today",
+      "pickupSlot": "09:00 AM",
+      "address": "Sector 137, Noida, Supertech Mart",
+      "studioId": 2,
+      "studioName": "Cleanz24 - Sector 137 Noida",
+      "driver": {
+        "name": "Amit Sharma",
+        "phone": "+91 98765 43210",
+        "rating": "4.8 ⭐",
+        "vehicle": "Cleanz EV Scooter #08"
+      },
+      "items": [
+        {
+          "id": "dc_saree",
+          "name": "Silk / Designer Saree Care",
+          "price": 299,
+          "quantity": 2,
+          "unit": "/ saree"
+        }
+      ],
+      "totalPrice": 598,
+      "paymentStatus": "Paid",
+      "createdAt": "2026-09-03T00:56:55.115Z"
+    },
+    {
+      "id": "CZ-849150",
+      "customerId": "usr_demo3",
+      "customerName": "Vikram Malhotra",
+      "customerPhone": "+91 99887 76655",
+      "statusStep": 4,
+      "deliveryTime": "Delivered at 02:15 PM",
+      "status": "Delivered",
+      "progress": 100,
+      "pickupDate": "Yesterday",
+      "pickupSlot": "03:00 PM",
+      "address": "Sector 94, Noida",
+      "studioId": 1,
+      "studioName": "Cleanz24 - Sector 41 Noida",
+      "driver": {
+        "name": "David Santos",
+        "phone": "+91 91380 04800",
+        "rating": "4.9 ⭐",
+        "vehicle": "Cleanz EV Van #14"
+      },
+      "items": [
+        {
+          "id": "dc_shoes",
+          "name": "Sneakers & Leather Shoe Spa",
+          "price": 349,
+          "quantity": 1,
+          "unit": "/ pair"
+        }
+      ],
+      "totalPrice": 349,
+      "paymentStatus": "Paid",
+      "createdAt": "2026-09-02T06:56:55.115Z"
+    }
+  ],
+  "walletTransactions": [
+    {
+      "id": "tx_1",
+      "userId": "usr_rishab",
+      "type": "credit",
+      "amount": 2000,
+      "description": "Wallet Top-up via UPI",
+      "timestamp": "2026-09-01T06:56:55.115Z"
+    },
+    {
+      "id": "tx_2",
+      "userId": "usr_rishab",
+      "type": "credit",
+      "amount": 500,
+      "description": "Welcome Cashback Bonus",
+      "timestamp": "2026-09-01T06:56:55.115Z"
+    },
+    {
+      "id": "tx_3",
+      "userId": "usr_rishab",
+      "type": "debit",
+      "amount": 50,
+      "description": "Order Booking #CZ-849201",
+      "timestamp": "2026-09-03T02:56:55.115Z"
+    }
+  ]
+}

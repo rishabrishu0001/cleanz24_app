@@ -1,0 +1,2634 @@
+[
+  {
+    "id": "1328837",
+    "name": "CURTAINS ABOVE 8 FEET",
+    "pieces": "1",
+    "rate": 289,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1328836",
+    "name": "CURTAINS ABOVE 8 FEET BALCONY",
+    "pieces": "1",
+    "rate": 289,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1328023",
+    "name": "FULL T SHIRT",
+    "pieces": "1",
+    "rate": 119,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1323943",
+    "name": "CARPET  6 FT",
+    "pieces": "1",
+    "rate": 249,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1322325",
+    "name": "COVER  SMALL",
+    "pieces": "1",
+    "rate": 10,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1322324",
+    "name": "COVER BIG",
+    "pieces": "1",
+    "rate": 20,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1315416",
+    "name": "RIDING JACKET < SPORTS >",
+    "pieces": "1",
+    "rate": 199,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1303982",
+    "name": "sofa cover  large",
+    "pieces": "1",
+    "rate": 179,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1303981",
+    "name": "sofa cover medium",
+    "pieces": "1",
+    "rate": 129,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1303979",
+    "name": "Sofa Cover small",
+    "pieces": "1",
+    "rate": 79,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1303640",
+    "name": "TABLE MATT",
+    "pieces": "1",
+    "rate": 42,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1303621",
+    "name": "BANIEAN",
+    "pieces": "1",
+    "rate": 15,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1296250",
+    "name": "BED SHEET double",
+    "pieces": "1",
+    "rate": 199,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1296249",
+    "name": "BED SHEET single",
+    "pieces": "1",
+    "rate": 139,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1293294",
+    "name": "hoodie",
+    "pieces": "1",
+    "rate": 149,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1293288",
+    "name": "sherwani suit  1 pc",
+    "pieces": "1",
+    "rate": 249,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1292649",
+    "name": "Lenin shirt full",
+    "pieces": "1",
+    "rate": 169,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1292648",
+    "name": "khaadi shirt full",
+    "pieces": "1",
+    "rate": 169,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1291658",
+    "name": "saree very heavy",
+    "pieces": "1",
+    "rate": 479,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1291657",
+    "name": "saree plain",
+    "pieces": "1",
+    "rate": 199,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1291655",
+    "name": "lehnga bridal 2.5  kg",
+    "pieces": "1",
+    "rate": 1549,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1291654",
+    "name": "lehnga 3 pcs",
+    "pieces": "1",
+    "rate": 599,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1291653",
+    "name": "sherwani weight upto 10kg",
+    "pieces": "1",
+    "rate": 3549,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1291652",
+    "name": "sherwani 3 pcs light",
+    "pieces": "1",
+    "rate": 599,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1291651",
+    "name": "petti coat",
+    "pieces": "1",
+    "rate": 99,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1291650",
+    "name": "plazoo",
+    "pieces": "1",
+    "rate": 149,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1291647",
+    "name": "salwar heavy",
+    "pieces": "1",
+    "rate": 159,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1291646",
+    "name": "salwar plain",
+    "pieces": "1",
+    "rate": 109,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1291645",
+    "name": "sameez",
+    "pieces": "1",
+    "rate": 59,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1288720",
+    "name": "Double Blanket",
+    "pieces": "1",
+    "rate": 599,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1288662",
+    "name": "blanket double layer",
+    "pieces": "1",
+    "rate": 499,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1288661",
+    "name": "Blanket  Single - single layer",
+    "pieces": "1",
+    "rate": 369,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1287418",
+    "name": "jacket half",
+    "pieces": "1",
+    "rate": 40,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287417",
+    "name": "jacket Nomal",
+    "pieces": "1",
+    "rate": 60,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287416",
+    "name": "Dress Normal",
+    "pieces": "1",
+    "rate": 60,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287415",
+    "name": "Dress Long",
+    "pieces": "1",
+    "rate": 80,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287414",
+    "name": "suit 3 pcs",
+    "pieces": "1",
+    "rate": 70,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287413",
+    "name": "Suit 2 Pcs",
+    "pieces": "1",
+    "rate": 50,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287412",
+    "name": "sherwani",
+    "pieces": "1",
+    "rate": 100,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287411",
+    "name": "Track Pant",
+    "pieces": "1",
+    "rate": 40,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287410",
+    "name": "Pyjama",
+    "pieces": "1",
+    "rate": 35,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287409",
+    "name": "Kurta Pyajama",
+    "pieces": "1",
+    "rate": 40,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287408",
+    "name": "Kurta",
+    "pieces": "1",
+    "rate": 30,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287407",
+    "name": "Pants",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287406",
+    "name": "Jeans",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287405",
+    "name": "Shirt",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287404",
+    "name": "Child Frock",
+    "pieces": "1",
+    "rate": 40,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287403",
+    "name": "Tie",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287402",
+    "name": "Skirt",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287401",
+    "name": "Swimming Costume",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287400",
+    "name": "Achkan",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287399",
+    "name": "Pathani Suit",
+    "pieces": "1",
+    "rate": 50,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287396",
+    "name": "Waist Coat",
+    "pieces": "1",
+    "rate": 35,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287395",
+    "name": "Sweat Shirt",
+    "pieces": "1",
+    "rate": 35,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287394",
+    "name": "Long Coat",
+    "pieces": "1",
+    "rate": 50,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287393",
+    "name": "Choli",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287392",
+    "name": "Lehenga",
+    "pieces": "1",
+    "rate": 150,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287391",
+    "name": "Dangree",
+    "pieces": "1",
+    "rate": 60,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287390",
+    "name": "Coat",
+    "pieces": "1",
+    "rate": 55,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287389",
+    "name": "Gown",
+    "pieces": "1",
+    "rate": 100,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287388",
+    "name": "Girl Suit Ethnic",
+    "pieces": "1",
+    "rate": 55,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287387",
+    "name": "Shorts",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287386",
+    "name": "Capri",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287385",
+    "name": "T Shirt",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287383",
+    "name": "Dress Normal",
+    "pieces": "1",
+    "rate": 199,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287382",
+    "name": "Dress Long",
+    "pieces": "1",
+    "rate": 249,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287381",
+    "name": "suit 3 pcs",
+    "pieces": "1",
+    "rate": 249,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287380",
+    "name": "Suit 2 Pcs",
+    "pieces": "1",
+    "rate": 199,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287379",
+    "name": "jacket half sleeves",
+    "pieces": "1",
+    "rate": 149,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287378",
+    "name": "jacket Nomal",
+    "pieces": "1",
+    "rate": 149,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287377",
+    "name": "jacket sport",
+    "pieces": "1",
+    "rate": 149,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287376",
+    "name": "kurta Normal",
+    "pieces": "1",
+    "rate": 79,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287375",
+    "name": "Child Frock",
+    "pieces": "1",
+    "rate": 149,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287374",
+    "name": "Tie",
+    "pieces": "1",
+    "rate": 49,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287373",
+    "name": "Skirt",
+    "pieces": "1",
+    "rate": 99,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287372",
+    "name": "Swimming Costume",
+    "pieces": "1",
+    "rate": 49,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287371",
+    "name": "Achkan",
+    "pieces": "1",
+    "rate": 299,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287370",
+    "name": "Pathani suiit",
+    "pieces": "1",
+    "rate": 149,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287369",
+    "name": "Sweater Half",
+    "pieces": "1",
+    "rate": 99,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287368",
+    "name": "Waist Coat",
+    "pieces": "1",
+    "rate": 149,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287367",
+    "name": "Sweat Shirt",
+    "pieces": "1",
+    "rate": 149,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287366",
+    "name": "long coat",
+    "pieces": "1",
+    "rate": 249,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287365",
+    "name": "Choli",
+    "pieces": "1",
+    "rate": 49,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287364",
+    "name": "lehenga",
+    "pieces": "1",
+    "rate": 299,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287317",
+    "name": "Dangree",
+    "pieces": "1",
+    "rate": 199,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287316",
+    "name": "Coat",
+    "pieces": "1",
+    "rate": 199,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287315",
+    "name": "Gown",
+    "pieces": "1",
+    "rate": 299,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287314",
+    "name": "Girl suit Ethnic",
+    "pieces": "1",
+    "rate": 249,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287311",
+    "name": "capri",
+    "pieces": "1",
+    "rate": 79,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287310",
+    "name": "T-shirt",
+    "pieces": "1",
+    "rate": 79,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287309",
+    "name": "pullover",
+    "pieces": "1",
+    "rate": 199,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287308",
+    "name": "sherwani",
+    "pieces": "1",
+    "rate": 299,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287307",
+    "name": "Track Pant",
+    "pieces": "1",
+    "rate": 79,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287306",
+    "name": "pyjama",
+    "pieces": "1",
+    "rate": 99,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287305",
+    "name": "Pants",
+    "pieces": "1",
+    "rate": 99,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287304",
+    "name": "jeans",
+    "pieces": "1",
+    "rate": 79,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1287303",
+    "name": "Shirt",
+    "pieces": "1",
+    "rate": 79,
+    "service": "DRY CLEAN",
+    "category": "KIDS"
+  },
+  {
+    "id": "1284008",
+    "name": "soft toy upto more than 36inch",
+    "pieces": "1",
+    "rate": 1099,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1284007",
+    "name": "soft toy more than 24inch but limited to 36inch",
+    "pieces": "1",
+    "rate": 649,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1284006",
+    "name": "soft toy upto 24inch",
+    "pieces": "1",
+    "rate": 399,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1284000",
+    "name": "soft toys (upto 12 )",
+    "pieces": "1",
+    "rate": 199,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283997",
+    "name": "curtains window with liner",
+    "pieces": "1",
+    "rate": 216,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283995",
+    "name": "curtains window without liner",
+    "pieces": "1",
+    "rate": 138,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283994",
+    "name": "curtain door with liner per pennel",
+    "pieces": "1",
+    "rate": 269,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283993",
+    "name": "curtain door without liner",
+    "pieces": "1",
+    "rate": 169,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283992",
+    "name": "Table cloth large",
+    "pieces": "1",
+    "rate": 119,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283991",
+    "name": "table cloth small",
+    "pieces": "1",
+    "rate": 79,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283990",
+    "name": "sofa and cushion pillow cover Large",
+    "pieces": "1",
+    "rate": 179,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283989",
+    "name": "sofa and cushion pillow cover medium",
+    "pieces": "1",
+    "rate": 129,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283988",
+    "name": "Sofa Cushion Pillow Cover Small",
+    "pieces": "1",
+    "rate": 79,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283987",
+    "name": "quilt cover double",
+    "pieces": "1",
+    "rate": 299,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283986",
+    "name": "quilt cover single",
+    "pieces": "1",
+    "rate": 189,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283985",
+    "name": "hand towel",
+    "pieces": "1",
+    "rate": 49,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283984",
+    "name": "curtain belt",
+    "pieces": "1",
+    "rate": 49,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283983",
+    "name": "foot mat",
+    "pieces": "1",
+    "rate": 89,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283982",
+    "name": "towel large",
+    "pieces": "1",
+    "rate": 109,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283981",
+    "name": "Blinds",
+    "pieces": "1",
+    "rate": 29,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283980",
+    "name": "carpet - Fur & pufy",
+    "pieces": "1",
+    "rate": 79,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283979",
+    "name": "table cover",
+    "pieces": "1",
+    "rate": 150,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283978",
+    "name": "chair cover",
+    "pieces": "1",
+    "rate": 100,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283977",
+    "name": "moequito net",
+    "pieces": "1",
+    "rate": 349,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283976",
+    "name": "apron",
+    "pieces": "1",
+    "rate": 109,
+    "service": "DRY CLEAN",
+    "category": "HOUSE HOLD"
+  },
+  {
+    "id": "1283974",
+    "name": "gown bridal",
+    "pieces": "1",
+    "rate": 1249,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283973",
+    "name": "gown heavy",
+    "pieces": "1",
+    "rate": 589,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283972",
+    "name": "Gown plain",
+    "pieces": "1",
+    "rate": 449,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283971",
+    "name": "Lehenga 2 pcs Heavy",
+    "pieces": "1",
+    "rate": 599,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283970",
+    "name": "lehnga 2 pcs plain",
+    "pieces": "1",
+    "rate": 499,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283969",
+    "name": "Saree bridal weight more than  10kg",
+    "pieces": "1",
+    "rate": 3549,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283968",
+    "name": "Saree bridal weight upto 5 kg",
+    "pieces": "1",
+    "rate": 1549,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283967",
+    "name": "saree heavy",
+    "pieces": "1",
+    "rate": 499,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283966",
+    "name": "saree pattu",
+    "pieces": "1",
+    "rate": 359,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283965",
+    "name": "saree plain",
+    "pieces": "1",
+    "rate": 279,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283964",
+    "name": "sherwani  2  pcs heavy",
+    "pieces": "1",
+    "rate": 799,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1283963",
+    "name": "sherwani 3 pcs light",
+    "pieces": "1",
+    "rate": 599,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1283962",
+    "name": "burkha",
+    "pieces": "1",
+    "rate": 399,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283718",
+    "name": "Lehenga 2pcs heavy",
+    "pieces": "1",
+    "rate": 150,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283717",
+    "name": "Lehenga 1 pcs plain",
+    "pieces": "1",
+    "rate": 50,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283716",
+    "name": "saree heavy",
+    "pieces": "1",
+    "rate": 100,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283715",
+    "name": "Saree plain",
+    "pieces": "1",
+    "rate": 80,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283714",
+    "name": "Gown Heavy",
+    "pieces": "1",
+    "rate": 100,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283713",
+    "name": "Gown plain",
+    "pieces": "1",
+    "rate": 60,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283712",
+    "name": "Dupatta Very Heavy",
+    "pieces": "1",
+    "rate": 75,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283711",
+    "name": "dupatta heavy",
+    "pieces": "1",
+    "rate": 55,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283710",
+    "name": "Dupatta Plain",
+    "pieces": "1",
+    "rate": 35,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283709",
+    "name": "Blouse very heavy",
+    "pieces": "1",
+    "rate": 65,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283708",
+    "name": "Blouse heavy",
+    "pieces": "1",
+    "rate": 45,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283707",
+    "name": "Blouse plain",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283706",
+    "name": "skirt long very heavy",
+    "pieces": "1",
+    "rate": 55,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283705",
+    "name": "skirt long  heavy",
+    "pieces": "1",
+    "rate": 45,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283704",
+    "name": "Skirt long plain",
+    "pieces": "1",
+    "rate": 30,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283703",
+    "name": "skirt short very heavy",
+    "pieces": "1",
+    "rate": 50,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283702",
+    "name": "skirt short heavy",
+    "pieces": "1",
+    "rate": 35,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283701",
+    "name": "skirt short plain",
+    "pieces": "1",
+    "rate": 40,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283700",
+    "name": "kurta and kameez Very Heavy",
+    "pieces": "1",
+    "rate": 95,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283699",
+    "name": "kurta and kameez Heavy",
+    "pieces": "1",
+    "rate": 75,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283698",
+    "name": "kurta and kameez Plain",
+    "pieces": "1",
+    "rate": 35,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283697",
+    "name": "Top very Heavy",
+    "pieces": "1",
+    "rate": 60,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283696",
+    "name": "Top Heavy",
+    "pieces": "1",
+    "rate": 35,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283695",
+    "name": "Top Plain",
+    "pieces": "1",
+    "rate": 30,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283694",
+    "name": "suit 3 pcs",
+    "pieces": "1",
+    "rate": 90,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283693",
+    "name": "suit 2 pcs",
+    "pieces": "1",
+    "rate": 70,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283692",
+    "name": "sweat shirt with hood",
+    "pieces": "1",
+    "rate": 40,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1283691",
+    "name": "sweat shirt without hood",
+    "pieces": "1",
+    "rate": 30,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1283690",
+    "name": "sherwani weight upto 5kg",
+    "pieces": "1",
+    "rate": 250,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1283688",
+    "name": "sherwani weight upto2.5kg",
+    "pieces": "1",
+    "rate": 200,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1283687",
+    "name": "sherwani 2 pcs Heavy",
+    "pieces": "1",
+    "rate": 150,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1283686",
+    "name": "sherwani 2 pcs light",
+    "pieces": "1",
+    "rate": 120,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1283685",
+    "name": "suit 3 pcs",
+    "pieces": "1",
+    "rate": 120,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1283684",
+    "name": "suit 2 pcs",
+    "pieces": "1",
+    "rate": 70,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1283683",
+    "name": "Shirt woolen",
+    "pieces": "1",
+    "rate": 30,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1283682",
+    "name": "Shirt Silk",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1283681",
+    "name": "Shirt Half Sleeves",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1283680",
+    "name": "Shirt Full Sleeves",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1283467",
+    "name": "lehenga 1pcs heavy",
+    "pieces": "1",
+    "rate": 449,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1283466",
+    "name": "safari suit 2 pcs",
+    "pieces": "1",
+    "rate": 359,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1283465",
+    "name": "suit 3 pcs",
+    "pieces": "1",
+    "rate": 499,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283464",
+    "name": "Suit 2 Pcs",
+    "pieces": "1",
+    "rate": 399,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1283463",
+    "name": "saree silk",
+    "pieces": "1",
+    "rate": 279,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283462",
+    "name": "saree polish",
+    "pieces": "1",
+    "rate": 300,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283461",
+    "name": "Ladies Suit 3 pcs Very heavy with salwar & dupatta",
+    "pieces": "1",
+    "rate": 957,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283460",
+    "name": "long dress",
+    "pieces": "1",
+    "rate": 399,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283459",
+    "name": "saree rolling",
+    "pieces": "1",
+    "rate": 230,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283458",
+    "name": "long frock",
+    "pieces": "1",
+    "rate": 449,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283457",
+    "name": "skirt short very heavy",
+    "pieces": "1",
+    "rate": 349,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283456",
+    "name": "skirt short heavy",
+    "pieces": "1",
+    "rate": 239,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283455",
+    "name": "skirt short plain",
+    "pieces": "1",
+    "rate": 149,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283454",
+    "name": "plazo very heavy",
+    "pieces": "1",
+    "rate": 349,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283453",
+    "name": "plazo heavy",
+    "pieces": "1",
+    "rate": 229,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283452",
+    "name": "plazo plain",
+    "pieces": "1",
+    "rate": 149,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283451",
+    "name": "salwar very heavy",
+    "pieces": "1",
+    "rate": 229,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283450",
+    "name": "salwar heavy",
+    "pieces": "1",
+    "rate": 159,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1283449",
+    "name": "salwar plain",
+    "pieces": "1",
+    "rate": 109,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1282371",
+    "name": "Petti Coat",
+    "pieces": "1",
+    "rate": 99,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1282370",
+    "name": "jumper",
+    "pieces": "1",
+    "rate": 179,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1282369",
+    "name": "capri",
+    "pieces": "1",
+    "rate": 109,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1282368",
+    "name": "slacks",
+    "pieces": "1",
+    "rate": 109,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1282367",
+    "name": "Leggings",
+    "pieces": "1",
+    "rate": 109,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1282363",
+    "name": "lower",
+    "pieces": "1",
+    "rate": 109,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1282362",
+    "name": "Payjama",
+    "pieces": "1",
+    "rate": 109,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1282361",
+    "name": "dhoti",
+    "pieces": "1",
+    "rate": 119,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1282360",
+    "name": "lungi",
+    "pieces": "1",
+    "rate": 119,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1282359",
+    "name": "Lehenga 1pcs plain",
+    "pieces": "1",
+    "rate": 399,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1282352",
+    "name": "skirt long heavy",
+    "pieces": "1",
+    "rate": 419,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1282351",
+    "name": "skirt Long very heavy",
+    "pieces": "1",
+    "rate": 529,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1282336",
+    "name": "Blouse heavy",
+    "pieces": "1",
+    "rate": 139,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1282335",
+    "name": "blouse  plain",
+    "pieces": "1",
+    "rate": 99,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1282334",
+    "name": "dupatta very heavy",
+    "pieces": "1",
+    "rate": 279,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1282333",
+    "name": "dupatta heavy",
+    "pieces": "1",
+    "rate": 189,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1282332",
+    "name": "Dupatta Plain",
+    "pieces": "1",
+    "rate": 119,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1282331",
+    "name": "kurta kameez heavy",
+    "pieces": "1",
+    "rate": 229,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1282330",
+    "name": "kurta kameez plain",
+    "pieces": "1",
+    "rate": 159,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1282325",
+    "name": "Top Heavy",
+    "pieces": "1",
+    "rate": 219,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1282324",
+    "name": "Top Plain",
+    "pieces": "1",
+    "rate": 149,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1282323",
+    "name": "shirt silk",
+    "pieces": "1",
+    "rate": 149,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1282322",
+    "name": "shirt half",
+    "pieces": "1",
+    "rate": 119,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1282321",
+    "name": "shirt full",
+    "pieces": "1",
+    "rate": 129,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1282320",
+    "name": "ladies suit 1pc heavy",
+    "pieces": "1",
+    "rate": 299,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1282319",
+    "name": "ladies suit 1pc plain",
+    "pieces": "1",
+    "rate": 199,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1282318",
+    "name": "kurtha kameez plain",
+    "pieces": "1",
+    "rate": 179,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1282317",
+    "name": "safari suit coat",
+    "pieces": "1",
+    "rate": 249,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1282316",
+    "name": "safari suit",
+    "pieces": "1",
+    "rate": 149,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1282315",
+    "name": "Ecofriendly Hygenic Laundry wash and iron",
+    "pieces": "1",
+    "rate": 190,
+    "service": "LAUNDRY",
+    "category": "LAUNDRY"
+  },
+  {
+    "id": "1282314",
+    "name": "Ecofriendly Hygenic Laundry wash and fold",
+    "pieces": "1",
+    "rate": 150,
+    "service": "LAUNDRY",
+    "category": "LAUNDRY"
+  },
+  {
+    "id": "1282313",
+    "name": "Trolly Bag upto  more than 36inches",
+    "pieces": "1",
+    "rate": 699,
+    "service": "BAG CLEANING",
+    "category": "BAGS"
+  },
+  {
+    "id": "1282312",
+    "name": "Trolly Bag upto 36inches",
+    "pieces": "1",
+    "rate": 499,
+    "service": "BAG CLEANING",
+    "category": "BAGS"
+  },
+  {
+    "id": "1282311",
+    "name": "Trolly Bag upto 24 inches",
+    "pieces": "1",
+    "rate": 299,
+    "service": "BAG CLEANING",
+    "category": "BAGS"
+  },
+  {
+    "id": "1282310",
+    "name": "hand bag leather Large",
+    "pieces": "1",
+    "rate": 999,
+    "service": "BAG CLEANING",
+    "category": "BAGS"
+  },
+  {
+    "id": "1282309",
+    "name": "hand bag leather small",
+    "pieces": "1",
+    "rate": 799,
+    "service": "BAG CLEANING",
+    "category": "BAGS"
+  },
+  {
+    "id": "1282308",
+    "name": "Handbag Canvas Jute/Cloth large",
+    "pieces": "1",
+    "rate": 479,
+    "service": "BAG CLEANING",
+    "category": "BAGS"
+  },
+  {
+    "id": "1282307",
+    "name": "Handbag Canvas Jute/Cloth small",
+    "pieces": "1",
+    "rate": 349,
+    "service": "BAG CLEANING",
+    "category": "BAGS"
+  },
+  {
+    "id": "1281299",
+    "name": "Gloves",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281298",
+    "name": "Panty Under Wear",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281297",
+    "name": "Shirt woolen",
+    "pieces": "1",
+    "rate": 30,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281296",
+    "name": "Brassieres",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281295",
+    "name": "Shirt Half Sleeves",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281294",
+    "name": "Shirt Silk",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281293",
+    "name": "Shirt Full Sleeves",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281292",
+    "name": "Jumper",
+    "pieces": "1",
+    "rate": 40,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281291",
+    "name": "Shawl",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281289",
+    "name": "Sweat pant",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281287",
+    "name": "Over Coat",
+    "pieces": "1",
+    "rate": 150,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281286",
+    "name": "Dangree",
+    "pieces": "1",
+    "rate": 50,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281285",
+    "name": "Sharara",
+    "pieces": "1",
+    "rate": 75,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281284",
+    "name": "Ladies Suit Western",
+    "pieces": "1",
+    "rate": 150,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281283",
+    "name": "Wedding Dress",
+    "pieces": "1",
+    "rate": 150,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281280",
+    "name": "saree very heavy",
+    "pieces": "1",
+    "rate": 130,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281279",
+    "name": "Lower",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281278",
+    "name": "Slacks",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281277",
+    "name": "Leggings",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281276",
+    "name": "Jeans",
+    "pieces": "1",
+    "rate": 30,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281275",
+    "name": "Pants",
+    "pieces": "1",
+    "rate": 30,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281274",
+    "name": "Ladies Suit Ethnic",
+    "pieces": "1",
+    "rate": 60,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281273",
+    "name": "Choli",
+    "pieces": "1",
+    "rate": 50,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281272",
+    "name": "Blazer",
+    "pieces": "1",
+    "rate": 60,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281271",
+    "name": "T Shirt",
+    "pieces": "1",
+    "rate": 30,
+    "service": "STEAM IRON",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281270",
+    "name": "safari suit 2 pcs",
+    "pieces": "1",
+    "rate": 110,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281269",
+    "name": "Safari suit coat",
+    "pieces": "1",
+    "rate": 70,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281268",
+    "name": "Safari shirt",
+    "pieces": "1",
+    "rate": 40,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281267",
+    "name": "Swimming Costume",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281266",
+    "name": "Achkan",
+    "pieces": "1",
+    "rate": 50,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281265",
+    "name": "Windcheater",
+    "pieces": "1",
+    "rate": 35,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281264",
+    "name": "sweat pant",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281263",
+    "name": "Long Pullover",
+    "pieces": "1",
+    "rate": 30,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281262",
+    "name": "Over coat",
+    "pieces": "1",
+    "rate": 50,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281261",
+    "name": "Sherwani 3 pcs Light",
+    "pieces": "3",
+    "rate": 70,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281260",
+    "name": "Dhoti and Kurta",
+    "pieces": "1",
+    "rate": 55,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281258",
+    "name": "Dangree",
+    "pieces": "1",
+    "rate": 50,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281257",
+    "name": "Track Suit",
+    "pieces": "1",
+    "rate": 75,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281256",
+    "name": "Tuxedo",
+    "pieces": "1",
+    "rate": 35,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281255",
+    "name": "Pathani Suit",
+    "pieces": "1",
+    "rate": 75,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281254",
+    "name": "Lungi",
+    "pieces": "1",
+    "rate": 40,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281253",
+    "name": "Dhoti",
+    "pieces": "1",
+    "rate": 40,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281252",
+    "name": "Track Pant",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281251",
+    "name": "Capri",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281250",
+    "name": "Shorts",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281249",
+    "name": "Lower",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281248",
+    "name": "Pyjama",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281247",
+    "name": "Jeans",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281246",
+    "name": "Pants",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281245",
+    "name": "Vest",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281244",
+    "name": "Undershirt",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281243",
+    "name": "Waist Coat",
+    "pieces": "1",
+    "rate": 35,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281242",
+    "name": "Blazer",
+    "pieces": "1",
+    "rate": 50,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281241",
+    "name": "Kurta",
+    "pieces": "1",
+    "rate": 35,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281240",
+    "name": "T - Shirt",
+    "pieces": "1",
+    "rate": 25,
+    "service": "STEAM IRON",
+    "category": "MEN"
+  },
+  {
+    "id": "1281239",
+    "name": "Knee Length Boots Pair",
+    "pieces": "2",
+    "rate": 349,
+    "service": "SHOE CLEANING",
+    "category": "SHOES"
+  },
+  {
+    "id": "1281238",
+    "name": "Mid Lengh Boots Pair",
+    "pieces": "2",
+    "rate": 299,
+    "service": "SHOE CLEANING",
+    "category": "SHOES"
+  },
+  {
+    "id": "1281237",
+    "name": "Ankle Length Boots Pair",
+    "pieces": "2",
+    "rate": 349,
+    "service": "SHOE CLEANING",
+    "category": "SHOES"
+  },
+  {
+    "id": "1281236",
+    "name": "Slippers Pair",
+    "pieces": "2",
+    "rate": 179,
+    "service": "SHOE CLEANING",
+    "category": "SHOES"
+  },
+  {
+    "id": "1281235",
+    "name": "Sandels Pair",
+    "pieces": "2",
+    "rate": 199,
+    "service": "SHOE CLEANING",
+    "category": "SHOES"
+  },
+  {
+    "id": "1281234",
+    "name": "Suede Shoes Pair",
+    "pieces": "2",
+    "rate": 299,
+    "service": "SHOE CLEANING",
+    "category": "SHOES"
+  },
+  {
+    "id": "1281233",
+    "name": "Leather Shoes Pair",
+    "pieces": "2",
+    "rate": 499,
+    "service": "SHOE CLEANING",
+    "category": "SHOES"
+  },
+  {
+    "id": "1281232",
+    "name": "Canvas Shoes Pair",
+    "pieces": "2",
+    "rate": 249,
+    "service": "SHOE CLEANING",
+    "category": "SHOES"
+  },
+  {
+    "id": "1281231",
+    "name": "Sports Shoes Pair",
+    "pieces": "2",
+    "rate": 299,
+    "service": "SHOE CLEANING",
+    "category": "SHOES"
+  },
+  {
+    "id": "1281230",
+    "name": "Wash & Iron Per Kg",
+    "pieces": "1",
+    "rate": 130,
+    "service": "LAUNDRY",
+    "category": "LAUNDRY"
+  },
+  {
+    "id": "1281229",
+    "name": "Wash & Fold Per Kg",
+    "pieces": "1",
+    "rate": 100,
+    "service": "LAUNDRY",
+    "category": "LAUNDRY"
+  },
+  {
+    "id": "1281228",
+    "name": "Woolen Laundry per kg",
+    "pieces": "1",
+    "rate": 290,
+    "service": "LAUNDRY",
+    "category": "LAUNDRY"
+  },
+  {
+    "id": "1281227",
+    "name": "Premium Laundry  per kg",
+    "pieces": "1",
+    "rate": 230,
+    "service": "LAUNDRY",
+    "category": "LAUNDRY"
+  },
+  {
+    "id": "1281169",
+    "name": "Panty Under Wear",
+    "pieces": "1",
+    "rate": 49,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281163",
+    "name": "Jumper",
+    "pieces": "1",
+    "rate": 199,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281153",
+    "name": "Petti Coat",
+    "pieces": "1",
+    "rate": 99,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281152",
+    "name": "Track Pant",
+    "pieces": "1",
+    "rate": 109,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1281151",
+    "name": "Capri",
+    "pieces": "1",
+    "rate": 109,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281150",
+    "name": "Lower",
+    "pieces": "1",
+    "rate": 109,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281147",
+    "name": "Jeans",
+    "pieces": "1",
+    "rate": 119,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281146",
+    "name": "Pants",
+    "pieces": "1",
+    "rate": 119,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281143",
+    "name": "Blazer leather",
+    "pieces": "1",
+    "rate": 399,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281142",
+    "name": "T - Shirt",
+    "pieces": "1",
+    "rate": 99,
+    "service": "DRY CLEAN",
+    "category": "WOMEN"
+  },
+  {
+    "id": "1281134",
+    "name": "Suit track",
+    "pieces": "1",
+    "rate": 159,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1281131",
+    "name": "Lungi",
+    "pieces": "1",
+    "rate": 119,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1281129",
+    "name": "Track Pant",
+    "pieces": "1",
+    "rate": 109,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1281126",
+    "name": "Lower short",
+    "pieces": "1",
+    "rate": 109,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1281124",
+    "name": "Jeans",
+    "pieces": "1",
+    "rate": 129,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1281123",
+    "name": "Pants",
+    "pieces": "1",
+    "rate": 129,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1281122",
+    "name": "Vest baniean",
+    "pieces": "1",
+    "rate": 59,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1281120",
+    "name": "Waist Coat jacket",
+    "pieces": "1",
+    "rate": 159,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1281119",
+    "name": "Blazer leather",
+    "pieces": "1",
+    "rate": 249,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1281117",
+    "name": "T - Shirt",
+    "pieces": "1",
+    "rate": 109,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1281116",
+    "name": "Uniform(General)",
+    "pieces": "1",
+    "rate": 149,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1281112",
+    "name": "achkan",
+    "pieces": "1",
+    "rate": 499,
+    "service": "DRY CLEAN",
+    "category": "MEN"
+  },
+  {
+    "id": "1281110",
+    "name": "Mountainers Bag pack",
+    "pieces": "1",
+    "rate": 349,
+    "service": "BAG CLEANING",
+    "category": "BAGS"
+  },
+  {
+    "id": "1281109",
+    "name": "Bagpack Small",
+    "pieces": "1",
+    "rate": 229,
+    "service": "BAG CLEANING",
+    "category": "BAGS"
+  },
+  {
+    "id": "1281108",
+    "name": "Socks",
+    "pieces": "2",
+    "rate": 49,
+    "service": "ACCESSORIES",
+    "category": "ACCESSORY"
+  },
+  {
+    "id": "1281107",
+    "name": "Helmet",
+    "pieces": "1",
+    "rate": 699,
+    "service": "ACCESSORIES",
+    "category": "ACCESSORY"
+  },
+  {
+    "id": "1281106",
+    "name": "Belt",
+    "pieces": "1",
+    "rate": 99,
+    "service": "ACCESSORIES",
+    "category": "ACCESSORY"
+  },
+  {
+    "id": "1281105",
+    "name": "Hat",
+    "pieces": "1",
+    "rate": 99,
+    "service": "ACCESSORIES",
+    "category": "ACCESSORY"
+  },
+  {
+    "id": "1281104",
+    "name": "Gloves",
+    "pieces": "2",
+    "rate": 199,
+    "service": "ACCESSORIES",
+    "category": "ACCESSORY"
+  },
+  {
+    "id": "1281103",
+    "name": "Scarf",
+    "pieces": "1",
+    "rate": 99,
+    "service": "ACCESSORIES",
+    "category": "ACCESSORY"
+  },
+  {
+    "id": "1281102",
+    "name": "Tie",
+    "pieces": "1",
+    "rate": 49,
+    "service": "ACCESSORIES",
+    "category": "ACCESSORY"
+  }
+]

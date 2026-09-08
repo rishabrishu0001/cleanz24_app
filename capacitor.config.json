@@ -1,0 +1,10 @@
+{
+  "appId": "com.cleanz24.app",
+  "appName": "Cleanz24",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "plugins": {}
+}
