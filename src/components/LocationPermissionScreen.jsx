@@ -151,7 +151,7 @@ export default function LocationPermissionScreen({ onLocationDetected, onSkip })
           Where should we pick up?
         </h1>
         <p style={{ fontSize: '14.5px', color: C.muted, textAlign: 'center', lineHeight: 1.6, maxWidth: '300px', margin: '0 0 40px' }}>
-          Allow location access so we can detect the nearest Cleanz24 studio and estimate your pickup time — just like Blinkit &amp; Zomato.
+          Allow location access so we can detect the nearest Cleanz24 studio and estimate your pickup time.
         </p>
 
         <button
