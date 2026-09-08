@@ -1,9 +1,8 @@
-// Frontend API Client for Cleanz24 Backend
 // In development, Vite proxies '/api' to local backend (http://localhost:5000).
-// In production APK / cloud, VITE_API_URL can point to the hosted backend (e.g. https://cleanz24-backend.onrender.com).
+// In production / APK, points directly to the live Render backend.
 const API_ORIGIN = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) 
   ? import.meta.env.VITE_API_URL.replace(/\/+$/, '') 
-  : '';
+  : (import.meta.env?.PROD ? 'https://cleanz24-app.onrender.com' : '');
 const BASE_URL = API_ORIGIN ? `${API_ORIGIN}/api` : '/api';
 
 async function fetchJSON(endpoint, options = {}) {
