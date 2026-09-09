@@ -299,6 +299,22 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
       if (adminPwd !== 'Cleanz24@1212') { setError('Incorrect security password.'); return; }
     }
 
+    // If user is trying to log in, verify that the account already exists before sending OTP
+    if (authMode === 'login' && !isAdmin) {
+      setLoading(true);
+      try {
+        const checkRes = await api.auth.checkUser(cleanPhone);
+        if (!checkRes?.exists) {
+          setLoading(false);
+          setAuthMode('signup');
+          setError('No account found with this number. Please sign up to create your account.');
+          return;
+        }
+      } catch (err) {
+        console.warn('Could not pre-check user existence:', err);
+      }
+    }
+
     setLoading(true);
     try {
       if (otpChannel === 'whatsapp') {
@@ -316,7 +332,6 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
     }
   };
 
-  // ── Step 2: Verify OTP ──
   const handleVerifyOtp = async (e) => {
     if (e) e.preventDefault();
     setError('');
@@ -344,6 +359,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
       const res = await verifyFn({
         phone: cleanPhone,
         otp,
+        mode: authMode,
         ...(enteredName ? { name: enteredName } : {}),
         email: finalEmail,
         address: address || 'Sector 94, Noida'
@@ -365,9 +381,20 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
       if (onLoginSuccess) onLoginSuccess(userToSave);
       onClose();
     } catch (err) {
-      // Allow demo OTPs
+      const errorMsg = err?.message || err?.error || '';
+
+      // Handle "no account found" — switch user to signup
+      if (authMode === 'login' && (errorMsg.includes('No account found') || errorMsg.includes('sign up'))) {
+        switchMode('signup');
+        setPhone(cleanPhone);
+        setError('No account found with this number. Please sign up first.');
+        setLoading(false);
+        return;
+      }
+
+      // Allow demo OTPs only for signup mode (not login for unregistered users)
       const allowed = ['123456', '1234', '941200'];
-      if (allowed.includes(otp.trim())) {
+      if (allowed.includes(otp.trim()) && authMode === 'signup') {
         const fallbackName = (enteredName && enteredName !== 'Customer') ? enteredName : 'Customer';
         const userToSave = {
           id: 'usr_' + Date.now(),
@@ -379,6 +406,23 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
         };
         if (onLoginSuccess) onLoginSuccess(userToSave);
         onClose();
+      } else if (allowed.includes(otp.trim()) && authMode === 'login') {
+        // For demo OTP in login mode — check if user exists without creating
+        try {
+          const checkRes = await api.auth.checkUser(cleanPhone);
+          if (checkRes?.exists && checkRes?.user) {
+            if (onLoginSuccess) onLoginSuccess({ ...checkRes.user, isLoggedIn: true });
+            onClose();
+          } else {
+            switchMode('signup');
+            setPhone(cleanPhone);
+            setError('No account found with this number. Please sign up first.');
+          }
+        } catch (_) {
+          switchMode('signup');
+          setPhone(cleanPhone);
+          setError('No account found with this number. Please sign up first.');
+        }
       } else {
         setError(`Incorrect OTP. Please check your ${otpChannel === 'whatsapp' ? 'WhatsApp' : 'SMS messages'} and try again.`);
       }

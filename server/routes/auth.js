@@ -78,6 +78,30 @@ router.post("/quick-login", async (req, res) => {
   }
 });
 
+// POST /api/auth/check-user (check if user exists without creating)
+router.post("/check-user", async (req, res) => {
+  const { phone } = req.body;
+  if (!phone) return res.status(400).json({ error: "Phone number is required" });
+
+  const cleanPhone = phone.replace(/\D/g, "").slice(-10);
+
+  try {
+    if (isMongoConnected) {
+      const user = await User.findOne({ phone: { $regex: cleanPhone } });
+      if (user) {
+        return res.json({ exists: true, user });
+      }
+      return res.json({ exists: false });
+    }
+
+    const db = getFallbackDb();
+    const user = db.users.find(u => u.phone && u.phone.includes(cleanPhone));
+    return res.json({ exists: !!user, ...(user ? { user } : {}) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/auth/send-whatsapp-otp
 router.post("/send-whatsapp-otp", async (req, res) => {
   const { phone } = req.body;
@@ -110,7 +134,7 @@ router.post("/send-whatsapp-otp", async (req, res) => {
 
 // POST /api/auth/verify-whatsapp-otp
 router.post("/verify-whatsapp-otp", async (req, res) => {
-  const { phone, otp, name, email, address } = req.body;
+  const { phone, otp, name, email, address, mode } = req.body;
   if (!phone || !otp) return res.status(400).json({ error: "Phone and OTP are required" });
 
   const cleanPhone = phone.replace(/\D/g, "").slice(-10);
@@ -126,10 +150,17 @@ router.post("/verify-whatsapp-otp", async (req, res) => {
   // Clear OTP
   otpStore.delete(cleanPhone);
 
+  const isLoginMode = mode === 'login';
+
   try {
     if (isMongoConnected) {
       let user = await User.findOne({ phone: { $regex: cleanPhone } });
       if (!user) {
+        // Login mode: reject if user doesn't exist
+        if (isLoginMode) {
+          return res.status(404).json({ error: "No account found with this number. Please sign up first." });
+        }
+        // Signup mode: create new user
         user = await User.create({
           id: "usr_" + Date.now(),
           name: name || "Customer",
@@ -139,17 +170,29 @@ router.post("/verify-whatsapp-otp", async (req, res) => {
           walletBalance: 500,
           addresses: address ? [{ id: "addr_" + Date.now(), title: "Home", badge: "Saved", address, phone: `+91 ${cleanPhone}`, type: "home" }] : []
         });
+        await WalletTransaction.create({
+          id: "tx_" + Date.now(),
+          userId: user.id,
+          type: "credit",
+          amount: 500,
+          description: "Welcome Bonus Cashback"
+        });
       } else if (name && name.trim() && name.trim() !== "Customer") {
         user.name = name.trim();
         if (email) user.email = email;
         await user.save();
       }
-      return res.json({ success: true, user, message: "Logged in successfully" });
+      return res.json({ success: true, user, message: isLoginMode ? "Logged in successfully" : "Account created successfully" });
     }
 
     const db = getFallbackDb();
     let user = db.users.find(u => u.phone && u.phone.includes(cleanPhone));
     if (!user) {
+      // Login mode: reject if user doesn't exist
+      if (isLoginMode) {
+        return res.status(404).json({ error: "No account found with this number. Please sign up first." });
+      }
+      // Signup mode: create new user
       user = {
         id: "usr_" + Date.now(),
         name: name || "Customer",
@@ -166,7 +209,7 @@ router.post("/verify-whatsapp-otp", async (req, res) => {
       if (email) user.email = email;
       saveFallbackDb(db);
     }
-    res.json({ success: true, user, message: "Logged in successfully" });
+    res.json({ success: true, user, message: isLoginMode ? "Logged in successfully" : "Account created successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -204,7 +247,7 @@ router.post("/send-sms-otp", async (req, res) => {
 
 // POST /api/auth/verify-sms-otp
 router.post("/verify-sms-otp", async (req, res) => {
-  const { phone, otp, name, email, address } = req.body;
+  const { phone, otp, name, email, address, mode } = req.body;
   if (!phone || !otp) return res.status(400).json({ error: "Phone and OTP are required" });
 
   const cleanPhone = phone.replace(/\D/g, "").slice(-10);
@@ -223,10 +266,17 @@ router.post("/verify-sms-otp", async (req, res) => {
   // Clear OTP
   otpStore.delete(cleanPhone);
 
+  const isLoginMode = mode === 'login';
+
   try {
     if (isMongoConnected) {
       let user = await User.findOne({ phone: { $regex: cleanPhone } });
       if (!user) {
+        // Login mode: reject if user doesn't exist
+        if (isLoginMode) {
+          return res.status(404).json({ error: "No account found with this number. Please sign up first." });
+        }
+        // Signup mode: create new user
         user = await User.create({
           id: "usr_" + Date.now(),
           name: name || "Customer",
@@ -236,17 +286,29 @@ router.post("/verify-sms-otp", async (req, res) => {
           walletBalance: 500,
           addresses: address ? [{ id: "addr_" + Date.now(), title: "Home", badge: "Saved", address, phone: `+91 ${cleanPhone}`, type: "home" }] : []
         });
+        await WalletTransaction.create({
+          id: "tx_" + Date.now(),
+          userId: user.id,
+          type: "credit",
+          amount: 500,
+          description: "Welcome Bonus Cashback"
+        });
       } else if (name && name.trim() && name.trim() !== "Customer") {
         user.name = name.trim();
         if (email) user.email = email;
         await user.save();
       }
-      return res.json({ success: true, user, message: "Logged in successfully" });
+      return res.json({ success: true, user, message: isLoginMode ? "Logged in successfully" : "Account created successfully" });
     }
 
     const db = getFallbackDb();
     let user = db.users.find(u => u.phone && u.phone.includes(cleanPhone));
     if (!user) {
+      // Login mode: reject if user doesn't exist
+      if (isLoginMode) {
+        return res.status(404).json({ error: "No account found with this number. Please sign up first." });
+      }
+      // Signup mode: create new user
       user = {
         id: "usr_" + Date.now(),
         name: name || "Customer",
@@ -263,7 +325,7 @@ router.post("/verify-sms-otp", async (req, res) => {
       if (email) user.email = email;
       saveFallbackDb(db);
     }
-    res.json({ success: true, user, message: "Logged in successfully" });
+    res.json({ success: true, user, message: isLoginMode ? "Logged in successfully" : "Account created successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

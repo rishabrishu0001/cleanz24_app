@@ -1189,58 +1189,6 @@ export default function StoresScreen({
 
         {/* Nearby Store List */}
         <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          
-          {/* Central Customer Care & Direct Booking Support Bar */}
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(39, 162, 67, 0.12), rgba(60, 139, 53, 0.06))',
-            border: '1px solid rgba(39, 162, 67, 0.35)',
-            borderRadius: '16px',
-            padding: '12px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '10px',
-            marginBottom: '4px'
-          }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>Franchise Booking Desk</span>
-                <span className="badge badge-green" style={{ fontSize: '9px', padding: '2px 6px' }}>7 AM - 10 PM</span>
-              </div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                Call or WhatsApp our central support team at <strong>+91 9138004800</strong>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <a 
-                href="tel:+919138004800"
-                style={{
-                  width: '36px', height: '36px', borderRadius: '10px',
-                  background: 'var(--primary-green)', color: '#FFF',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  textDecoration: 'none', boxShadow: '0 3px 10px rgba(39,162,67,0.4)'
-                }}
-                title="Call 9138004800"
-              >
-                <Phone size={16} />
-              </a>
-              <a 
-                href={`https://wa.me/919138004800?text=${encodeURIComponent(`Hello Cleanz24, I want to book laundry pickup near ${appLocation || 'Noida'}`)}`}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  width: '36px', height: '36px', borderRadius: '10px',
-                  background: '#25D366', color: '#FFF',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  textDecoration: 'none', boxShadow: '0 3px 10px rgba(37,211,102,0.4)'
-                }}
-                title="WhatsApp 9138004800"
-              >
-                <MessageCircle size={17} />
-              </a>
-            </div>
-          </div>
-
           {nearbyStores.map(store => (
             <StoreCard key={store.id} store={store} showDistance={true} />
           ))}

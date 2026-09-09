@@ -29,6 +29,7 @@ export const api = {
   // ── Auth & Users ──
   auth: {
     quickLogin: (data) => fetchJSON('/auth/quick-login', { method: 'POST', body: JSON.stringify(data) }),
+    checkUser: (phone) => fetchJSON('/auth/check-user', { method: 'POST', body: JSON.stringify({ phone }) }),
     sendWhatsAppOtp: (phone) => fetchJSON('/auth/send-whatsapp-otp', { method: 'POST', body: JSON.stringify({ phone }) }),
     verifyWhatsAppOtp: (data) => fetchJSON('/auth/verify-whatsapp-otp', { method: 'POST', body: JSON.stringify(data) }),
     sendSmsOtp: (phone) => fetchJSON('/auth/send-sms-otp', { method: 'POST', body: JSON.stringify({ phone }) }),

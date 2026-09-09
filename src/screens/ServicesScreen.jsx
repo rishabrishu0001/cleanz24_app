@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Plus, Minus, ShoppingBag, MapPin, Phone, MessageCircle, Sparkles, ChevronDown, X, Navigation, Filter } from 'lucide-react';
+import { getGarmentIcon } from '../utils/garmentIcons.js';
 import { VAISHALI_CATALOG } from '../data/vaishaliCatalog.js';
 import { BRAHMAPUR_CATALOG } from '../data/brahmapurCatalog.js';
 import { JEYPORE_CATALOG } from '../data/jeyporeCatalog.js';
@@ -939,6 +940,7 @@ export default function ServicesScreen({
         ) : (
           filteredItems.map(item => {
             const qty = getItemQty(item.id);
+            const icon = getGarmentIcon(item);
 
             return (
               <div 
@@ -952,33 +954,43 @@ export default function ServicesScreen({
                   background: qty > 0 ? 'rgba(39, 162, 67, 0.08)' : 'var(--bg-card)'
                 }}
               >
-                {/* Item Thumbnail */}
+                {/* Item Icon Thumbnail */}
                 <div style={{
-                  width: '80px',
-                  height: '80px',
-                  borderRadius: '12px',
+                  width: '72px',
+                  height: '72px',
+                  borderRadius: '16px',
                   overflow: 'hidden',
                   position: 'relative',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  background: icon.gradient,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                 }}>
-                  <img 
-                    src={item.image} 
-                    alt={item.name}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
+                  <span style={{ fontSize: '32px', lineHeight: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>
+                    {icon.emoji}
+                  </span>
                   {item.tag && (
                     <span style={{
                       position: 'absolute',
-                      top: '4px',
-                      left: '4px',
-                      background: 'rgba(0,0,0,0.8)',
-                      color: 'var(--primary-green)',
-                      fontSize: '8px',
+                      bottom: '3px',
+                      left: '3px',
+                      right: '3px',
+                      background: 'rgba(0,0,0,0.75)',
+                      backdropFilter: 'blur(4px)',
+                      color: '#FFFFFF',
+                      fontSize: '7px',
                       fontWeight: '700',
-                      padding: '2px 4px',
-                      borderRadius: '4px'
+                      padding: '2px 3px',
+                      borderRadius: '4px',
+                      textAlign: 'center',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      letterSpacing: '0.02em'
                     }}>
-                      {item.tag}
+                      {item.service}
                     </span>
                   )}
                 </div>
