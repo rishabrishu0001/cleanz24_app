@@ -29,14 +29,14 @@ This code is valid for 5 minutes. For your account security, please do not share
         text: { preview_url: false, body: englishMessage }
       };
 
-      let response = await fetch(`https://graph.facebook.com/v19.0/${phoneId}/messages`, {
+      let response = await fetch(`https://graph.facebook.com/v25.0/${phoneId}/messages`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(2500)
+        signal: AbortSignal.timeout(5000)
       });
       let data = await response.json();
 
@@ -44,12 +44,12 @@ This code is valid for 5 minutes. For your account security, please do not share
       if (data.error && (data.error.code === 131047 || data.error.code === 100)) {
         console.warn(`[WhatsApp API Text Window Warning]:`, data.error.message, "- Trying template fallback...");
         let templatePayload;
-        if (templateName === "hello_world" || !templateName) {
+        if (templateName === "3p_direct_integration_test_template" || templateName === "hello_world" || !templateName) {
           templatePayload = {
             messaging_product: "whatsapp",
             to: recipient,
             type: "template",
-            template: { name: "hello_world", language: { code: "en_US" } }
+            template: { name: templateName || "3p_direct_integration_test_template", language: { code: "en_US" } }
           };
         } else {
           templatePayload = {
@@ -66,7 +66,7 @@ This code is valid for 5 minutes. For your account security, please do not share
           };
         }
 
-        response = await fetch(`https://graph.facebook.com/v19.0/${phoneId}/messages`, {
+        response = await fetch(`https://graph.facebook.com/v25.0/${phoneId}/messages`, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${token}`,
