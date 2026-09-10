@@ -19,6 +19,6 @@ services:
       - key: WHATSAPP_TOKEN
         sync: false
       - key: WHATSAPP_PHONE_ID
-        sync: false
+        value: "1232168166656706"
       - key: WHATSAPP_TEMPLATE_NAME
-        value: hello_world
+        value: cleanz24_app

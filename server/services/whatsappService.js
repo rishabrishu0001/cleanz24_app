@@ -14,9 +14,9 @@ This code is valid for 5 minutes. For your account security, please do not share
 
 — Cleanz24 Eco Laundry & Dry Clean`;
 
-  const token = process.env.WHATSAPP_TOKEN;
-  const phoneId = process.env.WHATSAPP_PHONE_ID;
-  const templateName = process.env.WHATSAPP_TEMPLATE_NAME;
+  const token = process.env.WHATSAPP_TOKEN || "EAAXPWf9uI8MBScy8qx6tPX7f9rS9dbEZCWPzeDHBRJL7rgqTfxMpABJdTB4j859XTqZBPUdLMXiAcjs1R4Jua0WNqEBxkduFBXZC8OwurBcj8gexsozwi9OCKt0OxU10IQm3kvFlC4guAEZC0pYPkDQc4e7h1koYc1PXpmIxTlxMEFNRMVMAZC71Oc6ef2QZDZD";
+  const phoneId = process.env.WHATSAPP_PHONE_ID || "1232168166656706";
+  const templateName = process.env.WHATSAPP_TEMPLATE_NAME || "cleanz24_app";
 
   if (token && phoneId) {
     try {
