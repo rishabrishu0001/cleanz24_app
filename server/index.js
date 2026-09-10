@@ -1,4 +1,4 @@
-﻿import express from "express";
+import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
@@ -28,6 +28,7 @@ app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
     app: "Cleanz24 Backend API",
+    version: "1.0.3-whatsapp-live",
     database: isMongoConnected ? "MongoDB (Connected)" : "Hybrid Mode (Awaiting MongoDB Connection)",
     timestamp: new Date().toISOString()
   });
