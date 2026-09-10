@@ -20,13 +20,31 @@ This code is valid for 5 minutes. For your account security, please do not share
 
   if (token && phoneId) {
     try {
-      // First attempt: Send direct English text message with OTP
+      const activeTemplate = templateName || "cleanz24_app";
+
+      // Payload for Authentication template (cleanz24_app)
+      // Meta authentication templates can have body OTP parameter and optional copy-code button parameter
       let payload = {
         messaging_product: "whatsapp",
         recipient_type: "individual",
         to: recipient,
-        type: "text",
-        text: { preview_url: false, body: englishMessage }
+        type: "template",
+        template: {
+          name: activeTemplate,
+          language: { code: "en" },
+          components: [
+            {
+              type: "body",
+              parameters: [{ type: "text", text: String(otp) }]
+            },
+            {
+              type: "button",
+              sub_type: "url",
+              index: 0,
+              parameters: [{ type: "text", text: String(otp) }]
+            }
+          ]
+        }
       };
 
       let response = await fetch(`https://graph.facebook.com/v25.0/${phoneId}/messages`, {
@@ -36,49 +54,67 @@ This code is valid for 5 minutes. For your account security, please do not share
           "Content-Type": "application/json"
         },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(6000)
       });
       let data = await response.json();
 
-      // If text message fails due to 24h window restriction (code 131047), fallback to template
-      if (data.error && (data.error.code === 131047 || data.error.code === 100)) {
-        console.warn(`[WhatsApp API Text Window Warning]:`, data.error.message, "- Trying template fallback...");
-        let templatePayload;
-        if (templateName === "3p_direct_integration_test_template" || templateName === "hello_world" || !templateName) {
-          templatePayload = {
-            messaging_product: "whatsapp",
-            to: recipient,
-            type: "template",
-            template: { name: templateName || "3p_direct_integration_test_template", language: { code: "en_US" } }
-          };
-        } else {
-          templatePayload = {
-            messaging_product: "whatsapp",
-            to: recipient,
-            type: "template",
-            template: {
-              name: templateName,
-              language: { code: "en_US" },
-              components: [
-                { type: "body", parameters: [{ type: "text", text: otp }] }
-              ]
-            }
-          };
-        }
-
-        response = await fetch(`https://graph.facebook.com/v25.0/${phoneId}/messages`, {
+      // If button parameter mismatch occurs, retry template with body only
+      if (data.error) {
+        console.warn(`[WhatsApp API Initial Template Attempt]:`, data.error.message, "- Retrying with body only...");
+        const bodyOnlyPayload = {
+          messaging_product: "whatsapp",
+          recipient_type: "individual",
+          to: recipient,
+          type: "template",
+          template: {
+            name: activeTemplate,
+            language: { code: "en" },
+            components: [
+              {
+                type: "body",
+                parameters: [{ type: "text", text: String(otp) }]
+              }
+            ]
+          }
+        };
+        const retryResp = await fetch(`https://graph.facebook.com/v25.0/${phoneId}/messages`, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json"
           },
-          body: JSON.stringify(templatePayload)
+          body: JSON.stringify(bodyOnlyPayload),
+          signal: AbortSignal.timeout(6000)
         });
-        data = await response.json();
+        const retryData = await retryResp.json();
+        if (!retryData.error) {
+          data = retryData;
+        }
+      }
+
+      // If template not approved yet or text fallback needed, try text message
+      if (data.error && payload.type === "template") {
+        console.warn(`[WhatsApp Template Status/Error]:`, data.error.message, "- Trying text message fallback...");
+        let fbResponse = await fetch(`https://graph.facebook.com/v25.0/${phoneId}/messages`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            messaging_product: "whatsapp",
+            recipient_type: "individual",
+            to: recipient,
+            type: "text",
+            text: { preview_url: false, body: englishMessage }
+          }),
+          signal: AbortSignal.timeout(5000)
+        });
+        data = await fbResponse.json();
       }
 
       if (data.error) {
-        console.warn(`[WhatsApp API Response Error]:`, data.error.message);
+        console.warn(`[WhatsApp API Response Error]:`, JSON.stringify(data.error));
       } else {
         console.log(`[WhatsApp API Live Delivered] to +${recipient}:`, data);
         return { success: true, live: true, data };

@@ -171,14 +171,14 @@ const studioImages = [
     desc: 'Barcoded garment tracking & quick pickup station'
   },
   {
-    url: '/images/drycleaning.jpg',
-    title: 'Eco Dry Clean Processing',
-    desc: 'Zero harmful harsh perchloroethylene, 100% fabric care'
+    url: '/images/studio_counter.jpg',
+    title: 'Premium Dry Clean Studio',
+    desc: '100% Eco-friendly organic solvents & delicate fabric care'
   },
   {
-    url: '/images/shoes.jpg',
-    title: 'Shoe & Bag Care Spa',
-    desc: 'Deep cleaning, suede restoration & conditioning'
+    url: '/images/studio_machinery.jpg',
+    title: 'High-Tech Processing & Care',
+    desc: 'Commercial Girbau machinery & hygienic fabric care'
   }
 ];
 
