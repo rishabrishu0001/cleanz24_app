@@ -45,7 +45,7 @@ export default function App() {
       const saved = localStorage.getItem('cleanz24_user');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.isLoggedIn && parsed.name) {
+        if (parsed && (parsed.isLoggedIn || parsed.isGuest) && parsed.name) {
           return parsed;
         }
       }
@@ -57,16 +57,20 @@ export default function App() {
 
   const initialUser = getInitialUser();
 
-  // User Auth State — default to null/guest if not logged in
+  // User Auth State — default to unauthenticated if not logged in and not guest
   const [currentUser, setCurrentUser] = useState(initialUser || {
     name: '',
     phone: '',
     email: '',
-    isLoggedIn: false
+    isLoggedIn: false,
+    isGuest: false
   });
 
-  // Prompt user with login/registration modal on first visit if not logged in!
-  const [showAuthModal, setShowAuthModal] = useState(!initialUser?.isLoggedIn);
+  // Controls whether user has entered app (via login or guest)
+  const isUserEntered = !!(currentUser?.isLoggedIn || currentUser?.isGuest);
+
+  // In-app auth modal (opened from Header / Booking when guest clicks Sign In)
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleLocationSelect = (newLocation, coords) => {
     setUserLocation(newLocation);
@@ -81,6 +85,22 @@ export default function App() {
   };
 
   const handleLoginSuccess = async (userData) => {
+    if (userData?.isGuest) {
+      const guestUser = {
+        id: 'guest_' + Date.now(),
+        name: 'Guest User',
+        phone: '',
+        email: '',
+        isLoggedIn: false,
+        isGuest: true
+      };
+      setCurrentUser(guestUser);
+      localStorage.setItem('cleanz24_user', JSON.stringify(guestUser));
+      setShowAuthModal(false);
+      setActiveTab('home');
+      return;
+    }
+
     try {
       const res = await api.auth.login(userData);
       const user = res.user || userData;
@@ -89,7 +109,8 @@ export default function App() {
         name: userData.name || user.name || 'Customer',
         phone: userData.phone || user.phone,
         email: userData.email || user.email,
-        isLoggedIn: true
+        isLoggedIn: true,
+        isGuest: false
       };
       setCurrentUser(finalUser);
       localStorage.setItem('cleanz24_user', JSON.stringify(finalUser));
@@ -101,7 +122,8 @@ export default function App() {
       const fallbackUser = {
         ...userData,
         name: userData.name || 'Customer',
-        isLoggedIn: true
+        isLoggedIn: true,
+        isGuest: false
       };
       setCurrentUser(fallbackUser);
       localStorage.setItem('cleanz24_user', JSON.stringify(fallbackUser));
@@ -110,6 +132,7 @@ export default function App() {
       handleLocationSelect(userData.address);
     }
     setShowAuthModal(false);
+    setActiveTab('home');
   };
 
   const handleLogout = () => {
@@ -118,9 +141,11 @@ export default function App() {
       name: '',
       phone: '',
       email: '',
-      isLoggedIn: false
+      isLoggedIn: false,
+      isGuest: false
     });
-    setShowAuthModal(true);
+    setShowAuthModal(false);
+    setActiveTab('profile');
   };
 
   // Application Data States (Prices in Indian Rupees - Rs.)
@@ -389,72 +414,88 @@ export default function App() {
 
             {/* Screen Content Container */}
             <main className="screen-content">
-              {activeTab === 'home' && (
-                <HomeScreen 
+              {!isUserEntered ? (
+                <ProfileScreen 
+                  onOpenChat={() => setShowSupportChat(true)}
                   onStartBooking={() => setShowBookingModal(true)}
-                  onNavigateTab={(tab) => setActiveTab(tab)}
-                  activeOrder={activeOrder}
+                  onOpenAdmin={() => setShowAdminPanel(true)}
                   currentUser={currentUser}
-                  userName={currentUser?.name ? currentUser.name.split(' ')[0] : 'Guest'}
+                  setCurrentUser={setCurrentUser}
+                  onLogout={handleLogout}
                   onOpenAuthModal={() => setShowAuthModal(true)}
-                  selectedStudio={selectedStudio}
-                  onStudioChange={(key) => setSelectedStudio(key)}
-                  userCoords={userCoords}
-                  userLocation={userLocation}
-                  onRequestLocation={() => setShowLocationPicker(true)}
+                  onLoginSuccess={handleLoginSuccess}
                 />
+              ) : (
+                <>
+                  {activeTab === 'home' && (
+                    <HomeScreen 
+                      onStartBooking={() => setShowBookingModal(true)}
+                      onNavigateTab={(tab) => setActiveTab(tab)}
+                      activeOrder={activeOrder}
+                      currentUser={currentUser}
+                      userName={currentUser?.name ? currentUser.name.split(' ')[0] : 'Guest'}
+                      onOpenAuthModal={() => setShowAuthModal(true)}
+                      selectedStudio={selectedStudio}
+                      onStudioChange={(key) => setSelectedStudio(key)}
+                      userCoords={userCoords}
+                      userLocation={userLocation}
+                      onRequestLocation={() => setShowLocationPicker(true)}
+                    />
+                  )}
+
+                  {activeTab === 'services' && (
+                    <ServicesScreen 
+                      cart={cart}
+                      setCart={setCart}
+                      onProceedToBooking={() => setShowBookingModal(true)}
+                      selectedStudio={selectedStudio}
+                      onStudioChange={(key) => setSelectedStudio(key)}
+                      userLocation={userLocation}
+                      userCoords={userCoords}
+                      onOpenLocationPicker={() => setShowLocationPicker(true)}
+                    />
+                  )}
+
+                  {activeTab === 'stores' && (
+                    <StoresScreen 
+                      userCoords={userCoords}
+                      setUserCoords={setUserCoords}
+                      userLocation={userLocation}
+                      onOpenLocationPicker={() => setShowLocationPicker(true)}
+                      onStartBooking={(selectedStore) => {
+                        if (selectedStore) {
+                          setSelectedStoreForBooking(selectedStore);
+                          handleLocationSelect(selectedStore.address || selectedStore.name, selectedStore.lat && selectedStore.lng ? { lat: selectedStore.lat, lng: selectedStore.lng } : null);
+                        }
+                        setShowBookingModal(true);
+                      }}
+                      onLocationDetected={(locationString) => {
+                        handleLocationSelect(locationString);
+                      }}
+                    />
+                  )}
+
+                  {activeTab === 'wallet' && (
+                    <WalletScreen 
+                      onStartBooking={() => setShowBookingModal(true)}
+                    />
+                  )}
+
+                  {activeTab === 'profile' && (
+                    <ProfileScreen 
+                      onOpenChat={() => setShowSupportChat(true)}
+                      onStartBooking={() => setShowBookingModal(true)}
+                      onOpenAdmin={() => setShowAdminPanel(true)}
+                      currentUser={currentUser}
+                      setCurrentUser={setCurrentUser}
+                      onLogout={handleLogout}
+                      onOpenAuthModal={() => setShowAuthModal(true)}
+                      onLoginSuccess={handleLoginSuccess}
+                    />
+                  )}
+                </>
               )}
-
-          {activeTab === 'services' && (
-            <ServicesScreen 
-              cart={cart}
-              setCart={setCart}
-              onProceedToBooking={() => setShowBookingModal(true)}
-              selectedStudio={selectedStudio}
-              onStudioChange={(key) => setSelectedStudio(key)}
-              userLocation={userLocation}
-              userCoords={userCoords}
-              onOpenLocationPicker={() => setShowLocationPicker(true)}
-            />
-          )}
-
-          {activeTab === 'stores' && (
-            <StoresScreen 
-              userCoords={userCoords}
-              setUserCoords={setUserCoords}
-              userLocation={userLocation}
-              onOpenLocationPicker={() => setShowLocationPicker(true)}
-              onStartBooking={(selectedStore) => {
-                if (selectedStore) {
-                  setSelectedStoreForBooking(selectedStore);
-                  handleLocationSelect(selectedStore.address || selectedStore.name, selectedStore.lat && selectedStore.lng ? { lat: selectedStore.lat, lng: selectedStore.lng } : null);
-                }
-                setShowBookingModal(true);
-              }}
-              onLocationDetected={(locationString) => {
-                handleLocationSelect(locationString);
-              }}
-            />
-          )}
-
-          {activeTab === 'wallet' && (
-            <WalletScreen 
-              onStartBooking={() => setShowBookingModal(true)}
-            />
-          )}
-
-          {activeTab === 'profile' && (
-            <ProfileScreen 
-              onOpenChat={() => setShowSupportChat(true)}
-              onStartBooking={() => setShowBookingModal(true)}
-              onOpenAdmin={() => setShowAdminPanel(true)}
-              currentUser={currentUser}
-              setCurrentUser={setCurrentUser}
-              onLogout={handleLogout}
-              onOpenAuthModal={() => setShowAuthModal(true)}
-            />
-          )}
-        </main>
+            </main>
 
         {/* Notifications Drawer Overlay */}
         {showNotifications && (
@@ -529,11 +570,13 @@ export default function App() {
         />
 
         {/* Mobile Bottom Navigation Bar */}
-        <BottomNav 
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          activeOrderCount={activeOrder ? 1 : 0}
-        />
+        {isUserEntered && (
+          <BottomNav 
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            activeOrderCount={activeOrder ? 1 : 0}
+          />
+        )}
         </>
         )}
 

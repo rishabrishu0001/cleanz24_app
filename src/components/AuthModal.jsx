@@ -268,6 +268,20 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
     ? `+91 XXXXX ${cleanPhone.slice(-5)}`
     : '+91 XXXXXXXXXX';
 
+  const handleContinueAsGuest = () => {
+    if (onLoginSuccess) {
+      onLoginSuccess({
+        id: 'guest_' + Date.now(),
+        name: 'Guest User',
+        phone: '',
+        email: '',
+        isLoggedIn: false,
+        isGuest: true
+      });
+    }
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   // ── Resend timer ──
@@ -686,7 +700,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
               )}
 
               {/* Guest */}
-              <button className="auth-guest" style={S.guestBtn} onClick={onClose}>
+              <button className="auth-guest" style={S.guestBtn} onClick={handleContinueAsGuest}>
                 Skip & browse as Guest →
               </button>
             </>
@@ -762,7 +776,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
               </form>
 
               {/* Guest */}
-              <button className="auth-guest" style={S.guestBtn} onClick={onClose}>
+              <button className="auth-guest" style={S.guestBtn} onClick={handleContinueAsGuest}>
                 Skip & browse as Guest →
               </button>
             </>

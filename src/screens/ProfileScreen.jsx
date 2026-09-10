@@ -79,13 +79,31 @@ function AddressForm({ draft, setDraft, onSave, onCancel }) {
   );
 }
 
-export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, setCurrentUser, onLogout, onOpenAuthModal }) {
+export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, setCurrentUser, onLogout, onOpenAuthModal, onLoginSuccess }) {
   // ── Auth / Session State ───────────────────────────────────────────────────
   const [isLoggedIn, setIsLoggedIn] = useState(currentUser ? !!currentUser.isLoggedIn : false);
   const [authMode, setAuthMode] = useState('signup'); // default to 'signup' for new users
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loginPhone, setLoginPhone] = useState('');
   const [loginName, setLoginName] = useState('');
+
+  const handleContinueAsGuest = () => {
+    const guestUser = {
+      id: 'guest_' + Date.now(),
+      name: 'Guest',
+      phone: '',
+      email: '',
+      isLoggedIn: false,
+      isGuest: true
+    };
+    if (setCurrentUser) {
+      setCurrentUser(guestUser);
+    }
+    localStorage.setItem('cleanz24_user', JSON.stringify(guestUser));
+    if (onLoginSuccess) {
+      onLoginSuccess(guestUser);
+    }
+  };
 
   // New Customer Signup Fields
   const [signupName, setSignupName] = useState('');
@@ -253,6 +271,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
         setCurrentUser(user);
       }
       localStorage.setItem('cleanz24_user', JSON.stringify(user));
+      if (onLoginSuccess) onLoginSuccess(user);
     } catch (err) {
       const localUser = {
         id: 'usr_' + Date.now(),
@@ -268,6 +287,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
         setCurrentUser(localUser);
       }
       localStorage.setItem('cleanz24_user', JSON.stringify(localUser));
+      if (onLoginSuccess) onLoginSuccess(localUser);
     } finally {
       setIsQuickLoggingIn(false);
     }
@@ -389,6 +409,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
         setCurrentUser(user);
       }
       localStorage.setItem('cleanz24_user', JSON.stringify(user));
+      if (onLoginSuccess) onLoginSuccess(user);
     } catch (err) {
       if (otpInput === demoOtpHint || otpInput === '123456' || otpInput === '1234' || otpInput === '941200') {
         const fallbackUser = {
@@ -408,8 +429,9 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
           setCurrentUser(fallbackUser);
         }
         localStorage.setItem('cleanz24_user', JSON.stringify(fallbackUser));
+        if (onLoginSuccess) onLoginSuccess(fallbackUser);
       } else {
-        setOtpError('Invalid OTP code. Please check WhatsApp or use the 1-Tap code.');
+        setOtpError('Invalid verification code. Please check your WhatsApp.');
       }
     } finally {
       setIsVerifying(false);
@@ -629,6 +651,36 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
             >
               New here? Sign in as New Customer →
             </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '10px', margin: '8px 0 2px' }}>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }} />
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>OR</span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }} />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleContinueAsGuest}
+              style={{
+                width: '100%',
+                padding: '11px',
+                borderRadius: '12px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid var(--border-glass)',
+                color: 'var(--text-main)',
+                fontSize: '13px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <User size={15} color="var(--primary-green)" />
+              Log in as Guest →
+            </button>
           </form>
         )}
 
@@ -800,6 +852,36 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
             >
               Already have an account? Log in
             </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '10px', margin: '8px 0 2px' }}>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }} />
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>OR</span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }} />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleContinueAsGuest}
+              style={{
+                width: '100%',
+                padding: '11px',
+                borderRadius: '12px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid var(--border-glass)',
+                color: 'var(--text-main)',
+                fontSize: '13px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <User size={15} color="var(--primary-green)" />
+              Log in as Guest →
+            </button>
           </form>
         )}
 
@@ -825,28 +907,6 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               <MessageCircle size={15} color="#16A34A" />
               <span>A 6-digit code was sent to your WhatsApp</span>
             </div>
-
-            {demoOtpHint && (
-              <button
-                type="button"
-                onClick={() => setOtpInput(demoOtpHint)}
-                style={{
-                  background: 'rgba(34, 197, 94, 0.12)',
-                  border: '1px solid rgba(34, 197, 94, 0.35)',
-                  color: '#16A34A',
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  fontSize: '11px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}
-              >
-                <CheckCircle2 size={13} /> 1-Tap Fill Code ({demoOtpHint})
-              </button>
-            )}
 
             {otpError && (
               <div style={{ color: '#EF4444', fontSize: '12px', fontWeight: '600', textAlign: 'center' }}>
@@ -926,12 +986,31 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               </button>
               <button
                 type="button"
-                onClick={() => { setOtpInput('1234'); }}
+                onClick={handleSendOtp}
+                disabled={isSendingOtp}
                 style={{ background: 'none', border: 'none', color: 'var(--primary-green)', cursor: 'pointer', fontWeight: '700' }}
               >
-                Resend OTP in 24s
+                {isSendingOtp ? 'Sending...' : 'Resend WhatsApp OTP'}
               </button>
             </div>
+
+            <button
+              type="button"
+              onClick={handleContinueAsGuest}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-muted)',
+                fontSize: '12px',
+                cursor: 'pointer',
+                marginTop: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              Skip &amp; Log in as Guest →
+            </button>
 
           </form>
         )}
