@@ -1,4 +1,4 @@
-﻿import mongoose from "mongoose";
+import mongoose from "mongoose";
 
 const addressSchema = new mongoose.Schema({
   id: { type: String, required: true },
@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
   phone: { type: String, required: true, unique: true },
   email: { type: String, default: "" },
   role: { type: String, enum: ["customer", "admin", "valet"], default: "customer" },
-  walletBalance: { type: Number, default: 500 },
+  walletBalance: { type: Number, default: 0 },
   addresses: [addressSchema],
   createdAt: { type: Date, default: Date.now }
 });

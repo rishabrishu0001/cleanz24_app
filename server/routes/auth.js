@@ -30,15 +30,8 @@ router.post("/quick-login", async (req, res) => {
           phone: `+91 ${cleanPhone}`,
           email: email || "",
           role: "customer",
-          walletBalance: 500,
+          walletBalance: 0,
           addresses: address ? [{ id: "addr_" + Date.now(), title: "Home", badge: "Saved", address, phone: `+91 ${cleanPhone}`, type: "home" }] : []
-        });
-        await WalletTransaction.create({
-          id: "tx_" + Date.now(),
-          userId: user.id,
-          type: "credit",
-          amount: 500,
-          description: "Welcome Bonus Cashback"
         });
       } else {
         if (finalName !== "Customer") {
@@ -60,7 +53,7 @@ router.post("/quick-login", async (req, res) => {
         phone: `+91 ${cleanPhone}`,
         email: email || "",
         role: "customer",
-        walletBalance: 500,
+        walletBalance: 0,
         addresses: address ? [{ id: "addr_" + Date.now(), title: "Home", badge: "Saved", address, phone: `+91 ${cleanPhone}`, type: "home" }] : []
       };
       db.users.push(user);
@@ -150,56 +143,45 @@ router.post("/verify-whatsapp-otp", async (req, res) => {
   // Clear OTP
   otpStore.delete(cleanPhone);
 
-  const isLoginMode = mode === 'login';
-
   try {
     if (isMongoConnected) {
       let user = await User.findOne({ phone: { $regex: cleanPhone } });
+      const isNewUser = !user;
       if (!user) {
-        // Login mode: reject if user doesn't exist
-        if (isLoginMode) {
-          return res.status(404).json({ error: "No account found with this number. Please sign up first." });
-        }
-        // Signup mode: create new user
         user = await User.create({
           id: "usr_" + Date.now(),
-          name: name || "Customer",
+          name: (name && name.trim() && name.trim() !== "Customer") ? name.trim() : "",
           phone: `+91 ${cleanPhone}`,
           email: email || "",
           role: "customer",
-          walletBalance: 500,
+          walletBalance: 0,
           addresses: address ? [{ id: "addr_" + Date.now(), title: "Home", badge: "Saved", address, phone: `+91 ${cleanPhone}`, type: "home" }] : []
-        });
-        await WalletTransaction.create({
-          id: "tx_" + Date.now(),
-          userId: user.id,
-          type: "credit",
-          amount: 500,
-          description: "Welcome Bonus Cashback"
         });
       } else if (name && name.trim() && name.trim() !== "Customer") {
         user.name = name.trim();
         if (email) user.email = email;
         await user.save();
       }
-      return res.json({ success: true, user, message: isLoginMode ? "Logged in successfully" : "Account created successfully" });
+      const needsName = isNewUser || !user.name || user.name === "Customer" || user.name.trim() === "";
+      return res.json({ 
+        success: true, 
+        user, 
+        isNewUser: needsName, 
+        message: needsName ? "Verification successful" : "Logged in successfully" 
+      });
     }
 
     const db = getFallbackDb();
     let user = db.users.find(u => u.phone && u.phone.includes(cleanPhone));
+    const isNewUser = !user;
     if (!user) {
-      // Login mode: reject if user doesn't exist
-      if (isLoginMode) {
-        return res.status(404).json({ error: "No account found with this number. Please sign up first." });
-      }
-      // Signup mode: create new user
       user = {
         id: "usr_" + Date.now(),
-        name: name || "Customer",
+        name: (name && name.trim() && name.trim() !== "Customer") ? name.trim() : "",
         phone: `+91 ${cleanPhone}`,
         email: email || "",
         role: "customer",
-        walletBalance: 500,
+        walletBalance: 0,
         addresses: address ? [{ id: "addr_" + Date.now(), title: "Home", badge: "Saved", address, phone: `+91 ${cleanPhone}`, type: "home" }] : []
       };
       db.users.push(user);
@@ -209,7 +191,13 @@ router.post("/verify-whatsapp-otp", async (req, res) => {
       if (email) user.email = email;
       saveFallbackDb(db);
     }
-    res.json({ success: true, user, message: isLoginMode ? "Logged in successfully" : "Account created successfully" });
+    const needsName = isNewUser || !user.name || user.name === "Customer" || user.name.trim() === "";
+    res.json({ 
+      success: true, 
+      user, 
+      isNewUser: needsName, 
+      message: needsName ? "Verification successful" : "Logged in successfully" 
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -266,66 +254,61 @@ router.post("/verify-sms-otp", async (req, res) => {
   // Clear OTP
   otpStore.delete(cleanPhone);
 
-  const isLoginMode = mode === 'login';
-
   try {
     if (isMongoConnected) {
       let user = await User.findOne({ phone: { $regex: cleanPhone } });
+      const isNewUser = !user;
       if (!user) {
-        // Login mode: reject if user doesn't exist
-        if (isLoginMode) {
-          return res.status(404).json({ error: "No account found with this number. Please sign up first." });
-        }
-        // Signup mode: create new user
         user = await User.create({
           id: "usr_" + Date.now(),
-          name: name || "Customer",
+          name: (name && name.trim() && name.trim() !== "Customer") ? name.trim() : "",
           phone: `+91 ${cleanPhone}`,
           email: email || "",
           role: "customer",
-          walletBalance: 500,
+          walletBalance: 0,
           addresses: address ? [{ id: "addr_" + Date.now(), title: "Home", badge: "Saved", address, phone: `+91 ${cleanPhone}`, type: "home" }] : []
-        });
-        await WalletTransaction.create({
-          id: "tx_" + Date.now(),
-          userId: user.id,
-          type: "credit",
-          amount: 500,
-          description: "Welcome Bonus Cashback"
         });
       } else if (name && name.trim() && name.trim() !== "Customer") {
         user.name = name.trim();
         if (email) user.email = email;
         await user.save();
       }
-      return res.json({ success: true, user, message: isLoginMode ? "Logged in successfully" : "Account created successfully" });
+      const needsName = isNewUser || !user.name || user.name === "Customer" || user.name.trim() === "";
+      return res.json({ 
+        success: true, 
+        user, 
+        isNewUser: needsName, 
+        message: needsName ? "Verification successful" : "Logged in successfully" 
+      });
     }
 
     const db = getFallbackDb();
     let user = db.users.find(u => u.phone && u.phone.includes(cleanPhone));
+    const isNewUser = !user;
     if (!user) {
-      // Login mode: reject if user doesn't exist
-      if (isLoginMode) {
-        return res.status(404).json({ error: "No account found with this number. Please sign up first." });
-      }
-      // Signup mode: create new user
       user = {
         id: "usr_" + Date.now(),
-        name: name || "Customer",
+        name: (name && name.trim() && name.trim() !== "Customer") ? name.trim() : "",
         phone: `+91 ${cleanPhone}`,
         email: email || "",
         role: "customer",
-        walletBalance: 500,
+        walletBalance: 0,
         addresses: address ? [{ id: "addr_" + Date.now(), title: "Home", badge: "Saved", address, phone: `+91 ${cleanPhone}`, type: "home" }] : []
       };
       db.users.push(user);
       saveFallbackDb(db);
-    } else if (name && name.trim() && name.trim() !== "Customer") {
+    } else if (name && name.trim()) {
       user.name = name.trim();
       if (email) user.email = email;
       saveFallbackDb(db);
     }
-    res.json({ success: true, user, message: isLoginMode ? "Logged in successfully" : "Account created successfully" });
+    const needsName = isNewUser || !user.name || user.name === "Customer" || user.name.trim() === "";
+    res.json({ 
+      success: true, 
+      user, 
+      isNewUser: needsName, 
+      message: needsName ? "Verification successful" : "Logged in successfully" 
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -352,16 +335,8 @@ router.post("/login", async (req, res) => {
           phone: phone || "+91 9999999999",
           email: email || "",
           role: "customer",
-          walletBalance: 500,
+          walletBalance: 0,
           addresses: []
-        });
-
-        await WalletTransaction.create({
-          id: "tx_" + Date.now(),
-          userId: user.id,
-          type: "credit",
-          amount: 500,
-          description: "Welcome Bonus Cashback"
         });
       } else if (name && name.trim() && name !== 'Customer') {
         user.name = name.trim();
@@ -385,7 +360,7 @@ router.post("/login", async (req, res) => {
         phone: phone || "+91 9999999999",
         email: email || "",
         role: "customer",
-        walletBalance: 500,
+        walletBalance: 0,
         addresses: []
       };
       db.users.push(user);
@@ -417,16 +392,8 @@ router.post("/register", async (req, res) => {
         phone,
         email: email || "",
         role: "customer",
-        walletBalance: 500,
+        walletBalance: 0,
         addresses: address ? [{ id: "addr_" + Date.now(), title: "Home", badge: "New", address, phone, type: "home" }] : []
-      });
-
-      await WalletTransaction.create({
-        id: "tx_" + Date.now(),
-        userId: user.id,
-        type: "credit",
-        amount: 500,
-        description: "Welcome Bonus Cashback"
       });
 
       return res.status(201).json({ success: true, user });
@@ -442,7 +409,7 @@ router.post("/register", async (req, res) => {
       phone,
       email: email || "",
       role: "customer",
-      walletBalance: 500,
+      walletBalance: 0,
       addresses: address ? [{ id: "addr_" + Date.now(), title: "Home", badge: "New", address, phone, type: "home" }] : []
     };
     db.users.push(user);

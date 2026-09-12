@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   MapPin, MessageSquare,
   ChevronRight, ChevronLeft, Bell, Lock, Store,
   Pencil, Trash2, Plus, Check, X, Home, Briefcase, Navigation,
   LogOut, ShieldAlert, Smartphone, ArrowRight, ShieldCheck,
   MessageCircle, Loader2, CheckCircle2, Eye, EyeOff, Key, User,
-  UserCheck, Zap
+  UserCheck, Zap, Sparkles, Mail
 } from 'lucide-react';
 import api from '../services/api.js';
 
@@ -81,12 +81,26 @@ function AddressForm({ draft, setDraft, onSave, onCancel }) {
 }
 
 export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, setCurrentUser, onLogout, onOpenAuthModal, onLoginSuccess, onNavigateTab }) {
-  // ── Auth / Session State ───────────────────────────────────────────────────
+  // ── Unified Modern Auth State (Blinkit / Zomato / Amazon flow) ──────────────
   const [isLoggedIn, setIsLoggedIn] = useState(currentUser ? !!currentUser.isLoggedIn : false);
-  const [authMode, setAuthMode] = useState('signup'); // default to 'signup' for new users
+  const [authStep, setAuthStep] = useState('phone'); // 'phone' | 'otp' | 'name'
+  const [phone, setPhone] = useState('');
+  const [otpInput, setOtpInput] = useState('');
+  const [otpChannel, setOtpChannel] = useState('whatsapp'); // 'whatsapp' | 'sms'
+  const [resendTimer, setResendTimer] = useState(30);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isSubmittingName, setIsSubmittingName] = useState(false);
+  const [otpError, setOtpError] = useState('');
+  const [demoOtpHint, setDemoOtpHint] = useState('');
+  const [pendingUser, setPendingUser] = useState(null);
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [loginPhone, setLoginPhone] = useState('');
-  const [loginName, setLoginName] = useState('');
+
+  // Stealth Admin State
+  const [adminSecretPassword, setAdminSecretPassword] = useState('');
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
 
   const handleContinueAsGuest = () => {
     const guestUser = {
@@ -95,7 +109,8 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
       phone: '',
       email: '',
       isLoggedIn: false,
-      isGuest: true
+      isGuest: true,
+      walletBalance: 0
     };
     if (setCurrentUser) {
       setCurrentUser(guestUser);
@@ -109,24 +124,17 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
     }
   };
 
-  // New Customer Signup Fields
-  const [signupName, setSignupName] = useState('');
-  const [signupPhone, setSignupPhone] = useState('');
-  const [signupEmail, setSignupEmail] = useState('');
-  const [signupAddress, setSignupAddress] = useState('Sector 94, Noida');
-
-  const [otpStep, setOtpStep] = useState(false);
-  const [otpInput, setOtpInput] = useState('');
-  const [isSendingOtp, setIsSendingOtp] = useState(false);
-  const [isQuickLoggingIn, setIsQuickLoggingIn] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [otpError, setOtpError] = useState('');
-  const [demoOtpHint, setDemoOtpHint] = useState('');
-  const [alreadyCustomerUser, setAlreadyCustomerUser] = useState(null);
-
-  // ── Stealth Admin State ──
-  const [adminSecretPassword, setAdminSecretPassword] = useState('');
-  const [showAdminPassword, setShowAdminPassword] = useState(false);
+  useEffect(() => {
+    let interval = null;
+    if (authStep === 'otp' && resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer(prev => prev - 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [authStep, resendTimer]);
 
   // ── Profile State ──────────────────────────────────────────────────────────
   const [profile, setProfile] = useState({
@@ -151,15 +159,15 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
   const handleLogout = () => {
     setIsLoggedIn(false);
     setShowLogoutConfirm(false);
-    setOtpStep(false);
+    setAuthStep('phone');
     setOtpInput('');
+    setPhone('');
     setAdminSecretPassword('');
-    setAuthMode('login');
     if (onLogout) {
       onLogout();
     } else {
       localStorage.removeItem('cleanz24_user');
-      if (setCurrentUser) setCurrentUser({ isLoggedIn: false });
+      if (setCurrentUser) setCurrentUser({ isLoggedIn: false, walletBalance: 0 });
     }
   };
 
@@ -236,78 +244,34 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
   const deleteAddress = (id) => setAddresses(prev => prev.filter(a => a.id !== id));
 
   // ── Auth Handlers ──────────────────────────────────────────────────────────
-  const handleQuickLogin = async (e) => {
-    if (e) e.preventDefault();
-    const phone = authMode === 'signup' ? signupPhone : loginPhone;
-    const cleanPhone = phone.replace(/\D/g, '');
-    if (cleanPhone.length < 10) {
-      setOtpError('Please enter a valid 10-digit mobile number.');
-      return;
-    }
-    const finalName = authMode === 'signup' 
-      ? (signupName.trim() || 'Customer') 
-      : (loginName.trim() || profile.name || currentUser?.name || 'Customer');
-    const finalEmail = authMode === 'signup' 
-      ? (signupEmail.trim() || `${cleanPhone}@cleanz24.com`) 
-      : (profile.email || `${cleanPhone}@cleanz24.com`);
-
-    setIsQuickLoggingIn(true);
+  const finishLogin = (user) => {
+    const finalUser = {
+      ...user,
+      walletBalance: 0, // strict 0 balance - no wallet credit bonus
+      isLoggedIn: true,
+      isGuest: false
+    };
+    setProfile(finalUser);
+    setIsLoggedIn(true);
+    setAuthStep('phone');
+    setOtpInput('');
+    setPhone('');
+    setNewUserName('');
+    setNewUserEmail('');
     setOtpError('');
-
+    if (setCurrentUser) setCurrentUser(finalUser);
     try {
-      const res = await api.auth.quickLogin({
-        phone: cleanPhone,
-        name: finalName,
-        email: finalEmail,
-        address: signupAddress || 'Sector 94, Noida'
-      });
-
-      const user = res.user || {
-        name: finalName,
-        phone: `+91 ${cleanPhone}`,
-        email: finalEmail,
-        isLoggedIn: true
-      };
-
-      setProfile(user);
-      setIsLoggedIn(true);
-      setOtpStep(false);
-      if (setCurrentUser) {
-        setCurrentUser(user);
-      }
-      localStorage.setItem('cleanz24_user', JSON.stringify(user));
-      if (onLoginSuccess) onLoginSuccess(user);
-    } catch (err) {
-      const localUser = {
-        id: 'usr_' + Date.now(),
-        name: finalName,
-        phone: `+91 ${cleanPhone}`,
-        email: finalEmail,
-        isLoggedIn: true
-      };
-      setProfile(localUser);
-      setIsLoggedIn(true);
-      setOtpStep(false);
-      if (setCurrentUser) {
-        setCurrentUser(localUser);
-      }
-      localStorage.setItem('cleanz24_user', JSON.stringify(localUser));
-      if (onLoginSuccess) onLoginSuccess(localUser);
-    } finally {
-      setIsQuickLoggingIn(false);
-    }
+      localStorage.setItem('cleanz24_user', JSON.stringify(finalUser));
+    } catch (_) {}
+    if (onLoginSuccess) onLoginSuccess(finalUser);
+    if (onNavigateTab) onNavigateTab('home');
   };
 
-  const handleSendOtp = async (e) => {
-    if (e) e.preventDefault();
-    const phone = authMode === 'signup' ? signupPhone : loginPhone;
-    const cleanPhone = phone.replace(/\D/g, '');
+  const handleSendOtp = async (channelOverride) => {
+    const activeChannel = channelOverride || otpChannel;
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10);
     if (cleanPhone.length < 10) {
       setOtpError('Please enter a valid 10-digit mobile number.');
-      return;
-    }
-    if (authMode === 'signup' && !signupName.trim()) {
-      setOtpError('Please enter your full name.');
       return;
     }
 
@@ -323,60 +287,27 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
       }
     }
 
-    // If signing up as New Customer, check if mobile number is already registered
-    if (authMode === 'signup') {
-      setIsSendingOtp(true);
-      setOtpError('');
-      try {
-        const checkRes = await api.auth.checkUser(cleanPhone);
-        if (checkRes?.exists) {
-          setIsSendingOtp(false);
-          setAlreadyCustomerUser(checkRes.user || { phone: cleanPhone, name: signupName });
-          return;
-        }
-      } catch (err) {
-        console.warn('Could not check user existence:', err);
-      }
-    }
-
     setIsSendingOtp(true);
     setOtpError('');
 
     try {
-      const res = await api.auth.sendWhatsAppOtp(cleanPhone);
-      setOtpStep(true);
-      const code = res.demoOtp || '123456';
+      let res;
+      if (activeChannel === 'sms') {
+        res = await api.auth.sendSmsOtp(cleanPhone);
+      } else {
+        res = await api.auth.sendWhatsAppOtp(cleanPhone);
+      }
+      setAuthStep('otp');
+      setResendTimer(30);
+      const code = res?.demoOtp || '123456';
       setDemoOtpHint(code);
       setOtpInput(code); // Pre-fill OTP code so user can verify immediately
     } catch (err) {
       const fallbackOtp = String(Math.floor(100000 + Math.random() * 900000));
       setDemoOtpHint(fallbackOtp);
-      setOtpStep(true);
-    } finally {
-      setIsSendingOtp(false);
-    }
-  };
-
-  const handleProceedToLoginFromExisting = async (existingUser) => {
-    const rawPhone = (existingUser?.phone || signupPhone).replace(/\D/g, '').slice(-10);
-    const rawName = existingUser?.name || '';
-    setLoginPhone(rawPhone);
-    if (rawName) setLoginName(rawName);
-    setAlreadyCustomerUser(null);
-    setAuthMode('login');
-    setOtpError('');
-    setIsSendingOtp(true);
-
-    try {
-      const res = await api.auth.sendWhatsAppOtp(rawPhone);
-      setOtpStep(true);
-      const code = res.demoOtp || '123456';
-      setDemoOtpHint(code);
-      setOtpInput(code);
-    } catch (err) {
-      const fallbackOtp = String(Math.floor(100000 + Math.random() * 900000));
-      setDemoOtpHint(fallbackOtp);
-      setOtpStep(true);
+      setOtpInput(fallbackOtp);
+      setAuthStep('otp');
+      setResendTimer(30);
     } finally {
       setIsSendingOtp(false);
     }
@@ -391,15 +322,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
 
     setIsVerifying(true);
     setOtpError('');
-
-    const phone = authMode === 'signup' ? signupPhone : loginPhone;
-    const cleanPhone = phone.replace(/\D/g, '');
-    const finalName = authMode === 'signup'
-      ? (signupName || 'Customer')
-      : (loginName || profile.name || currentUser?.name || 'Customer');
-    const finalEmail = authMode === 'signup'
-      ? (signupEmail || 'customer@cleanz24.com')
-      : (profile.email || `${cleanPhone}@cleanz24.com`);
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10);
 
     // Stealth Admin entry
     if (cleanPhone === '9355395911') {
@@ -410,13 +333,13 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
           name: 'Cleanz24 Administrator',
           email: 'admin@cleanz24.com'
         });
-        setOtpStep(false);
+        setAuthStep('phone');
         setAdminSecretPassword('');
         if (onOpenAdmin) onOpenAdmin();
         return;
       } catch (err) {
         if (otpInput === demoOtpHint || otpInput === '123456' || otpInput === '1234' || otpInput === '941200') {
-          setOtpStep(false);
+          setAuthStep('phone');
           setAdminSecretPassword('');
           if (onOpenAdmin) onOpenAdmin();
           return;
@@ -429,83 +352,143 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
     }
 
     try {
-      const res = await api.auth.verifyWhatsAppOtp({
-        phone: cleanPhone,
-        otp: otpInput,
-        name: finalName,
-        email: finalEmail,
-        address: signupAddress || 'Sector 94, Noida'
-      });
+      const res = otpChannel === 'sms'
+        ? await api.auth.verifySmsOtp({ phone: cleanPhone, otp: otpInput })
+        : await api.auth.verifyWhatsAppOtp({ phone: cleanPhone, otp: otpInput });
 
-      const user = res.user || {
-        name: finalName,
+      const verifiedUser = res?.user || {
         phone: `+91 ${cleanPhone}`,
-        email: finalEmail,
-        isLoggedIn: true
+        name: '',
+        email: '',
+        walletBalance: 0
       };
 
-      setProfile({
-        name: user.name,
-        phone: user.phone,
-        email: user.email
-      });
-      setIsLoggedIn(true);
-      setOtpStep(false);
-      if (setCurrentUser) {
-        setCurrentUser(user);
+      if (res?.isNewUser || !verifiedUser.name || verifiedUser.name === 'Customer' || verifiedUser.name.trim() === '') {
+        // Brand new user! Ask for name in Step 3 (Blinkit / Zomato style)
+        setPendingUser(verifiedUser);
+        setAuthStep('name');
+      } else {
+        // Existing registered customer! Directly log in without extra barriers
+        finishLogin(verifiedUser);
       }
-      localStorage.setItem('cleanz24_user', JSON.stringify(user));
-      if (onLoginSuccess) onLoginSuccess(user);
     } catch (err) {
       if (otpInput === demoOtpHint || otpInput === '123456' || otpInput === '1234' || otpInput === '941200') {
         const fallbackUser = {
-          name: finalName,
+          id: 'usr_' + Date.now(),
           phone: `+91 ${cleanPhone}`,
-          email: finalEmail,
-          isLoggedIn: true
+          name: '',
+          email: '',
+          walletBalance: 0
         };
-        setProfile({
-          name: fallbackUser.name,
-          phone: fallbackUser.phone,
-          email: fallbackUser.email
-        });
-        setIsLoggedIn(true);
-        setOtpStep(false);
-        if (setCurrentUser) {
-          setCurrentUser(fallbackUser);
-        }
-        localStorage.setItem('cleanz24_user', JSON.stringify(fallbackUser));
-        if (onLoginSuccess) onLoginSuccess(fallbackUser);
+        setPendingUser(fallbackUser);
+        setAuthStep('name');
       } else {
-        setOtpError('Invalid verification code. Please check your WhatsApp.');
+        setOtpError('Invalid verification code. Please check your WhatsApp/SMS.');
       }
     } finally {
       setIsVerifying(false);
     }
   };
 
-  // ── LOGGED OUT SCREEN ──────────────────────────────────────────────────────
+  const handleSaveName = async (e) => {
+    if (e) e.preventDefault();
+    if (!newUserName.trim()) {
+      setOtpError('Please enter your full name.');
+      return;
+    }
+
+    setIsSubmittingName(true);
+    setOtpError('');
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+    const finalName = newUserName.trim();
+    const finalEmail = newUserEmail.trim() || `${cleanPhone}@cleanz24.com`;
+
+    try {
+      const res = await api.auth.updateProfile({
+        userId: pendingUser?.id,
+        phone: cleanPhone,
+        name: finalName,
+        email: finalEmail
+      });
+
+      const updatedUser = res?.user || {
+        ...(pendingUser || {}),
+        name: finalName,
+        email: finalEmail,
+        phone: `+91 ${cleanPhone}`,
+        walletBalance: 0
+      };
+
+      finishLogin(updatedUser);
+    } catch (err) {
+      const fallbackUser = {
+        ...(pendingUser || {}),
+        name: finalName,
+        email: finalEmail,
+        phone: `+91 ${cleanPhone}`,
+        walletBalance: 0
+      };
+      finishLogin(fallbackUser);
+    } finally {
+      setIsSubmittingName(false);
+    }
+  };
+
+  const handleQuickLogin = async () => {
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+    if (cleanPhone.length < 10) {
+      setOtpError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    setIsSendingOtp(true);
+    try {
+      const res = await api.auth.quickLogin({
+        phone: cleanPhone,
+        name: 'Valued Customer',
+        email: `${cleanPhone}@cleanz24.com`
+      });
+      const user = res?.user || {
+        phone: `+91 ${cleanPhone}`,
+        name: 'Valued Customer',
+        email: `${cleanPhone}@cleanz24.com`,
+        walletBalance: 0
+      };
+      finishLogin(user);
+    } catch (err) {
+      finishLogin({
+        phone: `+91 ${cleanPhone}`,
+        name: 'Customer',
+        email: `${cleanPhone}@cleanz24.com`,
+        walletBalance: 0
+      });
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  // ── LOGGED OUT SCREEN (Blinkit / Zomato Flow) ───────────────────────────────
   if (!isLoggedIn) {
-    const activePhoneDisplay = authMode === 'signup' ? signupPhone : loginPhone;
-    const isSpecialPhone = activePhoneDisplay.replace(/\D/g, '') === '9355395911';
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+    const isSpecialPhone = cleanPhone === '9355395911';
 
     return (
       <div className="animate-fade-in" style={{ 
-        padding: '20px 16px 40px', 
+        padding: '24px 18px 48px', 
         display: 'flex', 
         flexDirection: 'column', 
         alignItems: 'center', 
         justifyContent: 'flex-start', 
         minHeight: '100%', 
         textAlign: 'center',
-        width: '100%'
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
 
         {/* Back to App navigation if user entered as guest */}
         {currentUser?.isGuest && (
           <div style={{
             width: '100%',
-            maxWidth: '320px',
+            maxWidth: '340px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -532,12 +515,12 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               <ChevronLeft size={16} color="var(--primary-green)" /> Back to App
             </button>
             <span style={{ fontSize: '11px', color: 'var(--primary-green)', fontWeight: '700', background: 'rgba(39, 162, 67, 0.1)', padding: '4px 10px', borderRadius: '12px' }}>
-              👤 Guest
+              👤 Guest Mode
             </span>
           </div>
         )}
 
-        {/* Top Logo / Icon */}
+        {/* Top Visual Badge */}
         <div style={{
           width: '68px',
           height: '68px',
@@ -548,392 +531,191 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
           aspectRatio: '1 / 1',
           flexShrink: 0,
           borderRadius: '50%',
-          background: 'rgba(39, 162, 67, 0.12)',
+          background: 'radial-gradient(circle, rgba(39, 162, 67, 0.18) 0%, rgba(39, 162, 67, 0.05) 100%)',
           border: '2px solid var(--primary-green)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: '14px'
+          marginBottom: '14px',
+          boxShadow: '0 8px 24px rgba(39, 162, 67, 0.18)'
         }}>
-          <Smartphone size={30} color="var(--primary-green)" style={{ flexShrink: 0 }} />
+          {authStep === 'name' ? (
+            <Sparkles size={30} color="var(--primary-green)" style={{ flexShrink: 0 }} />
+          ) : (
+            <Smartphone size={30} color="var(--primary-green)" style={{ flexShrink: 0 }} />
+          )}
         </div>
 
-        {/* Title */}
-        <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '4px', color: 'var(--text-main)' }}>
-          {otpStep
-            ? 'Enter 6-Digit OTP'
-            : authMode === 'signup'
-              ? 'New Customer Registration'
-              : 'Log in to Cleanz24'}
-        </h2>
-        <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '18px', maxWidth: '300px' }}>
-          {otpStep
-            ? `We sent a one-time passcode to +91 ${activePhoneDisplay}`
-            : authMode === 'signup'
-              ? 'Create your Cleanz24 account & get flat 20% OFF on your 1st pickup!'
-              : 'Access saved addresses, order tracking, VIP rewards & instant doorstep pickups.'}
-        </p>
-
-        {/* Login / Sign Up Tab Switcher (Only on customer initial step) */}
-        {!otpStep && (
-          <div style={{
-            display: 'flex',
-            width: '100%',
-            maxWidth: '320px',
-            background: 'var(--bg-card-subtle)',
-            border: '1px solid var(--border-glass)',
-            borderRadius: '12px',
-            padding: '3px',
-            marginBottom: '16px'
-          }}>
-            <button
-              type="button"
-              onClick={() => { setAuthMode('login'); setOtpError(''); setAlreadyCustomerUser(null); }}
-              style={{
-                flex: 1,
-                padding: '8px',
-                borderRadius: '9px',
-                border: 'none',
-                background: authMode === 'login' ? 'var(--primary-green)' : 'transparent',
-                color: authMode === 'login' ? '#FFF' : 'var(--text-muted)',
-                fontSize: '12px',
-                fontWeight: '700',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              Existing Customer
-            </button>
-            <button
-              type="button"
-              onClick={() => { setAuthMode('signup'); setOtpError(''); setAlreadyCustomerUser(null); }}
-              style={{
-                flex: 1,
-                padding: '8px',
-                borderRadius: '9px',
-                border: 'none',
-                background: authMode === 'signup' ? 'var(--primary-green)' : 'transparent',
-                color: authMode === 'signup' ? '#FFF' : 'var(--text-muted)',
-                fontSize: '12px',
-                fontWeight: '700',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              New Customer ✨
-            </button>
-          </div>
-        )}
-
-        {/* ── ALREADY REGISTERED SCREEN (When existing user tries to sign up as New Customer) ── */}
-        {alreadyCustomerUser && (
-          <div className="animate-fade-in" style={{
-            width: '100%',
-            maxWidth: '320px',
-            padding: '24px 18px',
-            borderRadius: '20px',
-            background: 'var(--bg-card)',
-            border: '1.5px solid var(--primary-green)',
-            boxShadow: '0 12px 36px rgba(39, 162, 67, 0.16)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            marginBottom: '16px'
-          }}>
-            <div style={{
-              width: '60px',
-              height: '60px',
-              minWidth: '60px',
-              minHeight: '60px',
-              borderRadius: '50%',
-              background: 'rgba(39, 162, 67, 0.14)',
-              border: '2px solid var(--primary-green)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '14px',
-              flexShrink: 0
-            }}>
-              <UserCheck size={30} color="var(--primary-green)" />
-            </div>
-
+        {/* Dynamic Titles according to active step */}
+        {authStep === 'phone' && (
+          <>
             <div style={{
               display: 'inline-block',
-              fontSize: '10.5px',
+              fontSize: '11px',
               fontWeight: '800',
               color: 'var(--primary-green)',
               textTransform: 'uppercase',
               letterSpacing: '0.8px',
               padding: '3px 10px',
-              borderRadius: '20px',
+              borderRadius: '16px',
               background: 'rgba(39, 162, 67, 0.1)',
               marginBottom: '8px'
             }}>
-              Account Found
+              India's Premier Fabric Care
             </div>
-
-            <h3 style={{ fontSize: '19px', fontWeight: '800', color: 'var(--text-main)', margin: '0 0 6px' }}>
-              Already a Customer! 🎉
-            </h3>
-
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', margin: '0 0 16px' }}>
-              {alreadyCustomerUser.name ? <strong>{alreadyCustomerUser.name}, </strong> : ''}
-              mobile number <strong style={{ color: 'var(--primary-green)' }}>+91 {(alreadyCustomerUser.phone || signupPhone).replace(/\D/g, '').slice(-10)}</strong> is already registered with Cleanz24.
+            <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '4px', color: 'var(--text-main)' }}>
+              Log in or Sign up
+            </h2>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '22px', maxWidth: '300px', lineHeight: 1.4 }}>
+              Enter your mobile number to get an instant verification code
             </p>
-
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={() => handleProceedToLoginFromExisting(alreadyCustomerUser)}
-              disabled={isSendingOtp}
-              style={{
-                width: '100%',
-                padding: '13px',
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: '800',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                marginBottom: '10px',
-                cursor: 'pointer'
-              }}
-            >
-              {isSendingOtp ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
-              {isSendingOtp ? 'Sending OTP...' : 'Proceed to Log In →'}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setAlreadyCustomerUser(null);
-                setSignupPhone('');
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-muted)',
-                fontSize: '12.5px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                padding: '6px'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-main)'}
-              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
-            >
-              ← Use a different phone number
-            </button>
-          </div>
+          </>
         )}
 
-        {/* Existing Customer Form */}
-        {!otpStep && authMode === 'login' && (
-          <form onSubmit={handleSendOtp} style={{ width: '100%', maxWidth: '320px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <input
-              type="text"
-              placeholder="Your Name (Optional / e.g. Divya)"
-              value={loginName}
-              onChange={e => setLoginName(e.target.value)}
-              style={{
-                padding: '10px 14px',
-                borderRadius: '12px',
-                border: '1px solid var(--border-glass)',
-                background: 'var(--bg-card-subtle)',
-                color: 'var(--text-main)',
-                fontSize: '13px',
-                outline: 'none'
-              }}
-            />
+        {authStep === 'otp' && (
+          <>
+            <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '6px', color: 'var(--text-main)' }}>
+              Enter Verification Code
+            </h2>
+            <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginBottom: '18px', maxWidth: '320px', lineHeight: 1.4 }}>
+              Code sent via {otpChannel === 'whatsapp' ? 'WhatsApp' : 'SMS'} to <strong style={{ color: 'var(--text-main)' }}>+91 {cleanPhone}</strong>
+              <button
+                type="button"
+                onClick={() => { setAuthStep('phone'); setOtpError(''); }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--primary-green)',
+                  fontWeight: '700',
+                  marginLeft: '6px',
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                Edit
+              </button>
+            </p>
+          </>
+        )}
+
+        {authStep === 'name' && (
+          <>
+            <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '4px', color: 'var(--text-main)' }}>
+              Welcome to Cleanz24! 🎉
+            </h2>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '22px', maxWidth: '300px', lineHeight: 1.4 }}>
+              Just a quick step to personalize your laundry & dry cleaning experience
+            </p>
+          </>
+        )}
+
+        {/* ── STEP 1: PHONE NUMBER INPUT (Blinkit / Zomato style) ── */}
+        {authStep === 'phone' && (
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleSendOtp(); }}
+            style={{ width: '100%', maxWidth: '340px', display: 'flex', flexDirection: 'column', gap: '14px' }}
+          >
+            {/* Phone Input Box */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              background: 'var(--bg-card-subtle)',
-              border: '1px solid var(--border-active)',
+              background: 'var(--bg-card)',
+              border: cleanPhone.length === 10 ? '1.5px solid var(--primary-green)' : '1px solid var(--border-active)',
               borderRadius: '14px',
-              padding: '4px 12px'
+              padding: '4px 14px',
+              boxShadow: cleanPhone.length === 10 ? '0 0 14px rgba(39, 162, 67, 0.15)' : 'none',
+              transition: 'all 0.2s ease'
             }}>
-              <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)', marginRight: '8px' }}>+91</span>
+              <span style={{
+                fontSize: '14px',
+                fontWeight: '800',
+                color: 'var(--text-main)',
+                marginRight: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                paddingRight: '10px',
+                borderRight: '1px solid var(--border-glass)'
+              }}>
+                🇮🇳 +91
+              </span>
               <input
                 type="tel"
                 placeholder="Enter 10-digit mobile number"
-                value={loginPhone}
-                onChange={e => setLoginPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                value={phone}
+                onChange={e => {
+                  setPhone(e.target.value.replace(/\D/g, '').slice(0, 10));
+                  setOtpError('');
+                }}
+                maxLength={10}
                 style={{
                   flex: 1,
-                  padding: '10px 0',
+                  padding: '12px 0',
                   background: 'transparent',
                   border: 'none',
                   color: 'var(--text-main)',
-                  fontSize: '14px',
-                  fontWeight: '600',
+                  fontSize: '15px',
+                  fontWeight: '700',
+                  letterSpacing: '1px',
                   outline: 'none'
                 }}
                 autoFocus
               />
+              {cleanPhone.length === 10 && (
+                <CheckCircle2 size={18} color="var(--primary-green)" style={{ flexShrink: 0 }} />
+              )}
             </div>
 
-            {/* Secret password prompt if 9355395911 is entered */}
-            {isSpecialPhone && (
-              <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left' }}>
-                <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)' }}>
-                  Security Password:
-                </label>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  background: 'var(--bg-card-subtle)',
-                  border: '1px solid var(--border-active)',
-                  borderRadius: '12px',
-                  padding: '2px 12px'
-                }}>
-                  <input
-                    type={showAdminPassword ? 'text' : 'password'}
-                    placeholder="Enter password"
-                    value={adminSecretPassword}
-                    onChange={e => setAdminSecretPassword(e.target.value)}
-                    required
-                    style={{
-                      flex: 1,
-                      padding: '10px 0',
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'var(--text-main)',
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      outline: 'none'
-                    }}
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowAdminPassword(!showAdminPassword)}
-                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
-                  >
-                    {showAdminPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {otpError && (
-              <div style={{ color: '#EF4444', fontSize: '12px', fontWeight: '600', textAlign: 'center' }}>
-                {otpError}
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={handleQuickLogin}
-              className="btn-primary"
-              disabled={isQuickLoggingIn}
-              style={{ width: '100%', padding: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '14px', fontWeight: '800' }}
-            >
-              {isQuickLoggingIn ? <Loader2 size={16} className="animate-spin" /> : null}
-              {isQuickLoggingIn ? 'Signing in...' : `Sign In as ${loginName.trim() ? loginName.trim() : 'Customer'} 🚀`}
-            </button>
-
-            <button
-              type="submit"
-              className="btn-secondary"
-              disabled={isSendingOtp}
-              style={{ width: '100%', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px' }}
-            >
-              {isSendingOtp ? <Loader2 size={15} className="animate-spin" /> : <MessageCircle size={15} color="#16A34A" />}
-              {isSendingOtp ? 'Sending code...' : 'Or Verify with WhatsApp OTP'}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => { setAuthMode('signup'); setOtpError(''); }}
-              style={{ background: 'none', border: 'none', color: 'var(--primary-green)', fontSize: '12px', cursor: 'pointer', fontWeight: '700', marginTop: '4px' }}
-            >
-              New here? Sign in as New Customer →
-            </button>
-
-            <button
-              type="button"
-              onClick={handleContinueAsGuest}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-muted)',
-                fontSize: '12.5px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '5px',
-                marginTop: '10px',
-                padding: '6px 12px',
-                borderRadius: '20px',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--primary-green)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
-            >
-              Skip &amp; Explore as Guest →
-            </button>
-          </form>
-        )}
-
-        {/* New Customer Registration Form */}
-        {!otpStep && authMode === 'signup' && !alreadyCustomerUser && (
-          <form onSubmit={handleSendOtp} style={{ width: '100%', maxWidth: '320px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-
-            {/* Promo Banner */}
-            <div style={{ padding: '8px 12px', borderRadius: '10px', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.3)', color: '#D97706', fontSize: '11px', fontWeight: '700' }}>
-              🎉 Welcome Promo CLEANZ20 (20% OFF) Unlocked!
-            </div>
-
-            {/* Name Input */}
-            <input
-              type="text"
-              placeholder="Your Full Name (e.g. Priya Sharma)"
-              value={signupName}
-              onChange={e => setSignupName(e.target.value)}
-              required
-              style={{
-                padding: '10px 14px',
-                borderRadius: '12px',
-                border: '1px solid var(--border-glass)',
-                background: 'var(--bg-card-subtle)',
-                color: 'var(--text-main)',
-                fontSize: '13px',
-                outline: 'none'
-              }}
-              autoFocus
-            />
-
-            {/* Mobile Number Input */}
+            {/* Delivery Channel Selector Pills */}
             <div style={{
               display: 'flex',
-              alignItems: 'center',
-              background: 'var(--bg-card-subtle)',
-              border: '1px solid var(--border-active)',
-              borderRadius: '12px',
-              padding: '2px 12px'
+              gap: '8px',
+              width: '100%'
             }}>
-              <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)', marginRight: '8px' }}>+91</span>
-              <input
-                type="tel"
-                placeholder="10-digit mobile number"
-                value={signupPhone}
-                onChange={e => setSignupPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                required
+              <button
+                type="button"
+                onClick={() => setOtpChannel('whatsapp')}
                 style={{
                   flex: 1,
-                  padding: '9px 0',
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-main)',
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  outline: 'none'
+                  padding: '8px 10px',
+                  borderRadius: '10px',
+                  border: otpChannel === 'whatsapp' ? '1.5px solid #22C55E' : '1px solid var(--border-glass)',
+                  background: otpChannel === 'whatsapp' ? 'rgba(34, 197, 94, 0.12)' : 'var(--bg-card-subtle)',
+                  color: otpChannel === 'whatsapp' ? '#16A34A' : 'var(--text-muted)',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
                 }}
-              />
+              >
+                <MessageCircle size={14} color="#16A34A" /> WhatsApp OTP
+              </button>
+              <button
+                type="button"
+                onClick={() => setOtpChannel('sms')}
+                style={{
+                  flex: 1,
+                  padding: '8px 10px',
+                  borderRadius: '10px',
+                  border: otpChannel === 'sms' ? '1.5px solid var(--primary-green)' : '1px solid var(--border-glass)',
+                  background: otpChannel === 'sms' ? 'rgba(39, 162, 67, 0.12)' : 'var(--bg-card-subtle)',
+                  color: otpChannel === 'sms' ? 'var(--primary-green)' : 'var(--text-muted)',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <Smartphone size={14} /> SMS OTP
+              </button>
             </div>
 
             {/* Secret password prompt if 9355395911 is entered */}
@@ -979,75 +761,71 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               </div>
             )}
 
-            {/* Email Address */}
-            <input
-              type="email"
-              placeholder="Email address (for bill & live tracking)"
-              value={signupEmail}
-              onChange={e => setSignupEmail(e.target.value)}
-              style={{
-                padding: '10px 14px',
-                borderRadius: '12px',
-                border: '1px solid var(--border-glass)',
-                background: 'var(--bg-card-subtle)',
-                color: 'var(--text-main)',
-                fontSize: '13px',
-                outline: 'none'
-              }}
-            />
-
-            {/* Address */}
-            <input
-              type="text"
-              placeholder="Pickup Area / Society (e.g. Sector 94, Noida)"
-              value={signupAddress}
-              onChange={e => setSignupAddress(e.target.value)}
-              style={{
-                padding: '10px 14px',
-                borderRadius: '12px',
-                border: '1px solid var(--border-glass)',
-                background: 'var(--bg-card-subtle)',
-                color: 'var(--text-main)',
-                fontSize: '13px',
-                outline: 'none'
-              }}
-            />
-
+            {/* Error Display */}
             {otpError && (
-              <div style={{ color: '#EF4444', fontSize: '12px', fontWeight: '600', textAlign: 'center' }}>
+              <div style={{
+                color: '#EF4444',
+                fontSize: '12px',
+                fontWeight: '600',
+                background: 'rgba(239, 68, 68, 0.08)',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1px solid rgba(239, 68, 68, 0.2)'
+              }}>
                 {otpError}
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={handleQuickLogin}
-              className="btn-primary"
-              disabled={isQuickLoggingIn}
-              style={{ width: '100%', padding: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '14px', fontWeight: '800' }}
-            >
-              {isQuickLoggingIn ? <Loader2 size={16} className="animate-spin" /> : null}
-              {isQuickLoggingIn ? 'Creating Account...' : `Sign Up as ${signupName.trim() ? signupName.trim() : 'Customer'} 🚀`}
-            </button>
-
+            {/* Primary Continue Button */}
             <button
               type="submit"
-              className="btn-secondary"
-              disabled={isSendingOtp}
-              style={{ width: '100%', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '12px' }}
+              className="btn-primary"
+              disabled={cleanPhone.length < 10 || isSendingOtp}
+              style={{
+                width: '100%',
+                padding: '14px',
+                borderRadius: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                fontSize: '14.5px',
+                fontWeight: '800',
+                opacity: cleanPhone.length < 10 ? 0.6 : 1,
+                cursor: cleanPhone.length < 10 ? 'not-allowed' : 'pointer'
+              }}
             >
-              {isSendingOtp ? <Loader2 size={15} className="animate-spin" /> : <MessageCircle size={15} color="#16A34A" />}
-              {isSendingOtp ? 'Sending code...' : 'Or Verify with WhatsApp OTP'}
+              {isSendingOtp ? <Loader2 size={18} className="animate-spin" /> : null}
+              {isSendingOtp ? 'Sending Code...' : 'Continue →'}
             </button>
 
-            <button
-              type="button"
-              onClick={() => { setAuthMode('login'); setOtpError(''); }}
-              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}
-            >
-              Already have an account? Log in
-            </button>
+            {/* 1-Tap Quick Login Helper for Testing */}
+            {cleanPhone.length === 10 && (
+              <button
+                type="button"
+                onClick={handleQuickLogin}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--primary-green)',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  padding: '4px'
+                }}
+              >
+                ⚡ 1-Tap Quick Login (Instant Access)
+              </button>
+            )}
 
+            {/* Microcopy: Legal & Terms */}
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '4px 0 8px', lineHeight: 1.4 }}>
+              By continuing, you agree to Cleanz24's{' '}
+              <span style={{ textDecoration: 'underline', color: 'var(--text-main)', cursor: 'pointer' }}>Terms of Service</span> &amp;{' '}
+              <span style={{ textDecoration: 'underline', color: 'var(--text-main)', cursor: 'pointer' }}>Privacy Policy</span>
+            </p>
+
+            {/* Skip & Explore as Guest Button */}
             <button
               type="button"
               onClick={handleContinueAsGuest}
@@ -1062,7 +840,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '5px',
-                marginTop: '10px',
+                marginTop: '4px',
                 padding: '6px 12px',
                 borderRadius: '20px',
                 transition: 'all 0.2s ease'
@@ -1075,37 +853,50 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
           </form>
         )}
 
-        {/* OTP Step (Both Customer Login and Signup) */}
-        {otpStep && (
-          <form onSubmit={handleVerifyOtp} style={{ width: '100%', maxWidth: '320px', display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
-
-            {/* WhatsApp Notification Banner */}
+        {/* ── STEP 2: 6-DIGIT OTP VERIFICATION ── */}
+        {authStep === 'otp' && (
+          <form
+            onSubmit={handleVerifyOtp}
+            style={{ width: '100%', maxWidth: '340px', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}
+          >
+            {/* WhatsApp notification chip */}
             <div style={{
               width: '100%',
               padding: '10px 14px',
               borderRadius: '12px',
-              background: 'rgba(34, 197, 94, 0.1)',
-              border: '1px solid rgba(34, 197, 94, 0.3)',
+              background: otpChannel === 'whatsapp' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(39, 162, 67, 0.1)',
+              border: otpChannel === 'whatsapp' ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(39, 162, 67, 0.3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '6px',
-              fontSize: '12px',
-              color: '#15803D',
+              gap: '8px',
+              fontSize: '12.5px',
+              color: otpChannel === 'whatsapp' ? '#15803D' : 'var(--primary-green)',
               fontWeight: '600'
             }}>
-              <MessageCircle size={15} color="#16A34A" />
-              <span>A 6-digit code was sent to your WhatsApp</span>
+              {otpChannel === 'whatsapp' ? <MessageCircle size={16} color="#16A34A" /> : <Smartphone size={16} />}
+              <span>Code sent to {otpChannel === 'whatsapp' ? 'WhatsApp' : 'SMS'}</span>
             </div>
 
+            {/* Error Message */}
             {otpError && (
-              <div style={{ color: '#EF4444', fontSize: '12px', fontWeight: '600', textAlign: 'center' }}>
+              <div style={{
+                color: '#EF4444',
+                fontSize: '12px',
+                fontWeight: '600',
+                textAlign: 'center',
+                background: 'rgba(239, 68, 68, 0.08)',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                width: '100%'
+              }}>
                 {otpError}
               </div>
             )}
 
             {/* 6 Digit Boxes Container with Transparent Overlay Input */}
-            <div style={{ position: 'relative', width: '100%', maxWidth: '300px', margin: '4px 0' }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '300px', margin: '6px 0' }}>
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', width: '100%' }}>
                 {[0, 1, 2, 3, 4, 5].map((idx) => {
                   const digit = otpInput[idx] || '';
@@ -1143,7 +934,10 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
                 inputMode="numeric"
                 maxLength={6}
                 value={otpInput}
-                onChange={e => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onChange={e => {
+                  setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6));
+                  setOtpError('');
+                }}
                 style={{
                   position: 'absolute',
                   inset: 0,
@@ -1156,54 +950,217 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               />
             </div>
 
+            {/* 1-Tap Demo OTP Helper chip */}
+            {demoOtpHint && (
+              <button
+                type="button"
+                onClick={() => setOtpInput(demoOtpHint)}
+                style={{
+                  background: 'rgba(39, 162, 67, 0.1)',
+                  border: '1px dashed var(--primary-green)',
+                  borderRadius: '20px',
+                  padding: '4px 12px',
+                  fontSize: '11.5px',
+                  fontWeight: '700',
+                  color: 'var(--primary-green)',
+                  cursor: 'pointer'
+                }}
+              >
+                ⚡ 1-Tap Fill Demo OTP: {demoOtpHint}
+              </button>
+            )}
+
+            {/* Verify CTA */}
             <button
               type="submit"
               className="btn-primary"
-              disabled={isVerifying}
-              style={{ width: '100%', padding: '13px', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              disabled={isVerifying || otpInput.length < 6}
+              style={{
+                width: '100%',
+                padding: '14px',
+                fontSize: '14.5px',
+                fontWeight: '800',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                opacity: otpInput.length < 6 ? 0.6 : 1,
+                cursor: otpInput.length < 6 ? 'not-allowed' : 'pointer'
+              }}
             >
-              {isVerifying ? <Loader2 size={16} className="animate-spin" /> : null}
-              {isVerifying ? 'Verifying...' : 'Verify & Sign In ✓'}
+              {isVerifying ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+              {isVerifying ? 'Verifying...' : 'Verify & Continue'}
             </button>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', fontSize: '11px', marginTop: '2px' }}>
+            {/* Resend & Change Number Actions */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', fontSize: '12px', marginTop: '4px' }}>
               <button
                 type="button"
-                onClick={() => setOtpStep(false)}
+                onClick={() => { setAuthStep('phone'); setOtpError(''); }}
                 style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'underline' }}
               >
                 Change Number
               </button>
-              <button
-                type="button"
-                onClick={handleSendOtp}
-                disabled={isSendingOtp}
-                style={{ background: 'none', border: 'none', color: 'var(--primary-green)', cursor: 'pointer', fontWeight: '700' }}
-              >
-                {isSendingOtp ? 'Sending...' : 'Resend WhatsApp OTP'}
-              </button>
+
+              {resendTimer > 0 ? (
+                <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>
+                  Resend code in {resendTimer}s
+                </span>
+              ) : (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleSendOtp('whatsapp')}
+                    disabled={isSendingOtp}
+                    style={{ background: 'none', border: 'none', color: '#16A34A', cursor: 'pointer', fontWeight: '700' }}
+                  >
+                    Resend WhatsApp
+                  </button>
+                  <span style={{ color: 'var(--text-muted)' }}>|</span>
+                  <button
+                    type="button"
+                    onClick={() => handleSendOtp('sms')}
+                    disabled={isSendingOtp}
+                    style={{ background: 'none', border: 'none', color: 'var(--primary-green)', cursor: 'pointer', fontWeight: '700' }}
+                  >
+                    Send SMS
+                  </button>
+                </div>
+              )}
             </div>
-
-            <button
-              type="button"
-              onClick={handleContinueAsGuest}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-muted)',
-                fontSize: '12px',
-                cursor: 'pointer',
-                marginTop: '6px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              Skip &amp; Log in as Guest →
-            </button>
-
           </form>
         )}
+
+        {/* ── STEP 3: NAME COLLECTION FOR NEW USERS (Blinkit / Zomato Flow) ── */}
+        {authStep === 'name' && (
+          <form
+            onSubmit={handleSaveName}
+            style={{ width: '100%', maxWidth: '340px', display: 'flex', flexDirection: 'column', gap: '14px' }}
+          >
+            {/* Promo Banner */}
+            <div style={{
+              padding: '10px 14px',
+              borderRadius: '12px',
+              background: 'rgba(245, 158, 11, 0.12)',
+              border: '1px solid rgba(245, 158, 11, 0.3)',
+              color: '#D97706',
+              fontSize: '12px',
+              fontWeight: '700',
+              textAlign: 'center'
+            }}>
+              🎉 Flat 20% OFF coupon unlocked for your first pickup!
+            </div>
+
+            {/* Name Input */}
+            <div style={{ textAlign: 'left' }}>
+              <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '6px', display: 'block' }}>
+                Full Name <span style={{ color: '#EF4444' }}>*</span>
+              </label>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-active)',
+                borderRadius: '12px',
+                padding: '4px 14px',
+                gap: '10px'
+              }}>
+                <User size={16} color="var(--primary-green)" />
+                <input
+                  type="text"
+                  placeholder="e.g. Priya Sharma"
+                  value={newUserName}
+                  onChange={e => { setNewUserName(e.target.value); setOtpError(''); }}
+                  required
+                  style={{
+                    flex: 1,
+                    padding: '10px 0',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-main)',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    outline: 'none'
+                  }}
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Email Input (Optional) */}
+            <div style={{ textAlign: 'left' }}>
+              <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
+                Email Address (Optional)
+              </label>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-glass)',
+                borderRadius: '12px',
+                padding: '4px 14px',
+                gap: '10px'
+              }}>
+                <Mail size={16} color="var(--text-muted)" />
+                <input
+                  type="email"
+                  placeholder="For digital bills & live tracking"
+                  value={newUserEmail}
+                  onChange={e => setNewUserEmail(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '10px 0',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-main)',
+                    fontSize: '13px',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {otpError && (
+              <div style={{
+                color: '#EF4444',
+                fontSize: '12px',
+                fontWeight: '600',
+                background: 'rgba(239, 68, 68, 0.08)',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1px solid rgba(239, 68, 68, 0.2)'
+              }}>
+                {otpError}
+              </div>
+            )}
+
+            {/* Finish Profile CTA */}
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={isSubmittingName || !newUserName.trim()}
+              style={{
+                width: '100%',
+                padding: '14px',
+                borderRadius: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                fontSize: '14.5px',
+                fontWeight: '800',
+                opacity: !newUserName.trim() ? 0.6 : 1,
+                cursor: !newUserName.trim() ? 'not-allowed' : 'pointer',
+                marginTop: '6px'
+              }}
+            >
+              {isSubmittingName ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}
+              {isSubmittingName ? 'Saving Profile...' : 'Start Using Cleanz24 🚀'}
+            </button>
+          </form>
+        )}
+
       </div>
     );
   }
