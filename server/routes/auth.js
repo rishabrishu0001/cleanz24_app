@@ -448,17 +448,33 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// GET /api/auth/me
+// GET /api/auth/me - Check current user session validity
 router.get("/me", async (req, res) => {
-  const userId = req.query.userId || "usr_rishab";
+  const { userId, phone } = req.query;
+  const cleanPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
+
+  if (!userId && !cleanPhone) {
+    return res.status(400).json({ exists: false, error: "UserId or phone is required" });
+  }
+
   try {
     if (isMongoConnected) {
-      const user = await User.findOne({ id: userId });
-      return res.json({ user: user || null });
+      let user = null;
+      if (userId) user = await User.findOne({ $or: [{ id: userId }, { _id: userId.match(/^[0-9a-fA-F]{24}$/) ? userId : null }] });
+      if (!user && cleanPhone) user = await User.findOne({ phone: { $regex: cleanPhone } });
+      
+      if (!user) {
+        return res.status(404).json({ exists: false, error: "User account does not exist or has been deleted by administrator" });
+      }
+      return res.json({ exists: true, user });
     }
+
     const db = getFallbackDb();
-    const user = db.users.find(u => u.id === userId) || db.users[0];
-    res.json({ user });
+    const user = db.users.find(u => (userId && (u.id === userId || u._id === userId)) || (cleanPhone && u.phone && u.phone.includes(cleanPhone)));
+    if (!user) {
+      return res.status(404).json({ exists: false, error: "User account does not exist or has been deleted by administrator" });
+    }
+    res.json({ exists: true, user });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

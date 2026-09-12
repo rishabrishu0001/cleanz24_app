@@ -1,5 +1,5 @@
 import express from "express";
-import { User, Order, Valet, Store, isMongoConnected, getFallbackDb } from "../db.js";
+import { User, Order, Valet, Store, isMongoConnected, getFallbackDb, saveFallbackDb } from "../db.js";
 
 const router = express.Router();
 
@@ -36,6 +36,89 @@ router.get("/users", async (req, res) => {
       );
     }
     return res.json({ success: true, users: [...users].reverse(), total: users.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/admin/users/:id - Edit customer details
+router.put("/users/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, phone, email, walletBalance, role } = req.body;
+
+  try {
+    if (isMongoConnected) {
+      let user = await User.findOne({ $or: [{ id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }] });
+      if (!user) {
+        return res.status(404).json({ error: "Customer not found" });
+      }
+      if (name !== undefined) user.name = name.trim();
+      if (phone !== undefined) {
+        const clean = phone.replace(/\D/g, "").slice(-10);
+        user.phone = `+91 ${clean}`;
+      }
+      if (email !== undefined) user.email = email.trim();
+      if (walletBalance !== undefined) user.walletBalance = Number(walletBalance) || 0;
+      if (role !== undefined) user.role = role;
+      await user.save();
+      return res.json({ success: true, user, message: "Customer profile updated successfully" });
+    }
+
+    const db = getFallbackDb();
+    const user = db.users.find(u => u.id === id || u._id === id);
+    if (!user) {
+      return res.status(404).json({ error: "Customer not found" });
+    }
+    if (name !== undefined) user.name = name.trim();
+    if (phone !== undefined) {
+      const clean = phone.replace(/\D/g, "").slice(-10);
+      user.phone = `+91 ${clean}`;
+    }
+    if (email !== undefined) user.email = email.trim();
+    if (walletBalance !== undefined) user.walletBalance = Number(walletBalance) || 0;
+    if (role !== undefined) user.role = role;
+    saveFallbackDb(db);
+    res.json({ success: true, user, message: "Customer profile updated successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/admin/users/:id - Delete customer and revoke session
+router.delete("/users/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    let deletedUser = null;
+    if (isMongoConnected) {
+      const query = { $or: [{ id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }] };
+      deletedUser = await User.findOneAndDelete(query);
+      if (!deletedUser) {
+        const cleanPhone = id.replace(/\D/g, "").slice(-10);
+        if (cleanPhone.length >= 10) {
+          deletedUser = await User.findOneAndDelete({ phone: { $regex: cleanPhone } });
+        }
+      }
+    }
+
+    const db = getFallbackDb();
+    const idx = db.users.findIndex(u => u.id === id || u._id === id || (u.phone && u.phone.includes(id.replace(/\D/g, "").slice(-10))));
+    if (idx !== -1) {
+      deletedUser = deletedUser || db.users[idx];
+      db.users.splice(idx, 1);
+      saveFallbackDb(db);
+    }
+
+    if (!deletedUser) {
+      return res.status(404).json({ error: "Customer not found or already deleted" });
+    }
+
+    res.json({
+      success: true,
+      deletedId: id,
+      deletedPhone: deletedUser.phone,
+      message: `Customer ${deletedUser.name || ''} (${deletedUser.phone || ''}) deleted successfully. Their session has been revoked.`
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

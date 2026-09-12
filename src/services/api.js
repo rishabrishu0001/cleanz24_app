@@ -36,7 +36,7 @@ export const api = {
     verifySmsOtp: (data) => fetchJSON('/auth/verify-sms-otp', { method: 'POST', body: JSON.stringify(data) }),
     login: (data) => fetchJSON('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
     register: (data) => fetchJSON('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
-    getMe: (userId) => fetchJSON(`/auth/me?userId=${encodeURIComponent(userId || '')}`),
+    getMe: (userId, phone) => fetchJSON(`/auth/me?userId=${encodeURIComponent(userId || '')}&phone=${encodeURIComponent(phone || '')}`),
     updateProfile: (data) => fetchJSON('/auth/profile', { method: 'PUT', body: JSON.stringify(data) }),
     getAddresses: (userId, phone) => fetchJSON(`/auth/addresses?userId=${encodeURIComponent(userId || '')}&phone=${encodeURIComponent(phone || '')}`),
     saveAddress: (data) => fetchJSON('/auth/addresses', { method: 'POST', body: JSON.stringify(data) }),
@@ -75,6 +75,8 @@ export const api = {
     getStats: (studioId) => fetchJSON(`/admin/stats?studioId=${encodeURIComponent(studioId || 'all')}`),
     getOrders: (studioId) => fetchJSON(`/admin/orders?studioId=${encodeURIComponent(studioId || 'all')}`),
     getUsers: (search) => fetchJSON(`/admin/users${search ? `?search=${encodeURIComponent(search)}` : ''}`),
+    updateUser: (id, data) => fetchJSON(`/admin/users/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteUser: (id) => fetchJSON(`/admin/users/${encodeURIComponent(id)}`, { method: 'DELETE' }),
     assignValet: (orderId, valetId) => fetchJSON(`/admin/orders/${orderId}/assign`, {
       method: 'PATCH',
       body: JSON.stringify({ valetId })

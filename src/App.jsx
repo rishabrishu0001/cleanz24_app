@@ -148,6 +148,80 @@ export default function App() {
     setActiveTab('profile');
   };
 
+  // ── Automatic Session Check ────────────────────────────────────────────────
+  // If admin deletes the customer from the dashboard, automatically log them out
+  // from their phone and prompt them to re-register as a brand new customer!
+  useEffect(() => {
+    if (!currentUser?.isLoggedIn || currentUser?.isGuest) return;
+
+    let isMounted = true;
+
+    const handleForceLogout = () => {
+      localStorage.removeItem('cleanz24_user');
+      setCurrentUser({
+        name: '',
+        phone: '',
+        email: '',
+        isLoggedIn: false,
+        isGuest: false
+      });
+      setActiveTab('profile');
+      setShowAuthModal(false);
+      window.alert('Aapka account administrator dwaara delete kar diya gaya hai. Kripya naye user ki tarah register karein.');
+    };
+
+    const verifySession = async () => {
+      try {
+        const res = await api.auth.getMe(currentUser.id, currentUser.phone);
+        if (!res?.exists && isMounted) {
+          console.warn('[Cleanz24] User deleted in backend. Auto-logging out...');
+          handleForceLogout();
+        }
+      } catch (err) {
+        if (err.message && (err.message.includes('404') || err.message.includes('deleted') || err.message.includes('not exist') || err.message.includes('not found'))) {
+          if (isMounted) {
+            console.warn('[Cleanz24] User deleted in backend. Auto-logging out...');
+            handleForceLogout();
+          }
+        }
+      }
+    };
+
+    // 1. Initial check
+    verifySession();
+
+    // 2. Periodic heartbeat check every 10 seconds
+    const heartbeatTimer = setInterval(verifySession, 10000);
+
+    // 3. Check when user switches to or wakes up the app
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        verifySession();
+      }
+    };
+    window.addEventListener('focus', verifySession);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    // 4. Instant cross-component event if deleted in the same browser session
+    const handleUserDeleted = (e) => {
+      const deletedPhone = e.detail?.phone?.replace(/\D/g, '').slice(-10);
+      const currentPhone = currentUser.phone?.replace(/\D/g, '').slice(-10);
+      const deletedId = e.detail?.id;
+      if ((deletedPhone && currentPhone && deletedPhone === currentPhone) || (deletedId && deletedId === currentUser.id)) {
+        handleForceLogout();
+      }
+    };
+    window.addEventListener('cleanz24_user_deleted', handleUserDeleted);
+
+    return () => {
+      isMounted = false;
+      clearInterval(heartbeatTimer);
+      window.removeEventListener('focus', verifySession);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('cleanz24_user_deleted', handleUserDeleted);
+    };
+  }, [currentUser?.id, currentUser?.phone, currentUser?.isLoggedIn]);
+
   // Application Data States (Prices in Indian Rupees - Rs.)
   const [cart, setCart] = useState({
     'wf_bag': {

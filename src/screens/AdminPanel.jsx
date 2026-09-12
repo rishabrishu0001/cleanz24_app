@@ -126,6 +126,12 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
   const [userFilterRole, setUserFilterRole] = useState('all'); // 'all' | 'customer' | 'admin' | 'has_address'
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [copiedPhoneId, setCopiedPhoneId] = useState(null);
+  const [editingUser, setEditingUser] = useState(null);
+  const [userEditDraft, setUserEditDraft] = useState({ name: '', phone: '', email: '', walletBalance: 0, role: 'customer' });
+  const [isSavingUser, setIsSavingUser] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
+  const [userActionMsg, setUserActionMsg] = useState('');
 
   // ── Orders State (CRUD & Status Stepper) ────────────────────────────────────
   const [ordersList, setOrdersList] = useState([
@@ -302,6 +308,68 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
       setCopiedPhoneId(userId);
       setTimeout(() => setCopiedPhoneId(null), 2000);
     } catch (_) {}
+  };
+
+  const handleOpenEditUser = (user) => {
+    setEditingUser(user);
+    setUserEditDraft({
+      name: user.name || '',
+      phone: user.phone ? user.phone.replace(/\D/g, '').slice(-10) : '',
+      email: user.email || '',
+      walletBalance: user.walletBalance !== undefined ? user.walletBalance : 0,
+      role: user.role || 'customer'
+    });
+  };
+
+  const handleSaveUserEdit = async (e) => {
+    if (e) e.preventDefault();
+    if (!editingUser) return;
+    setIsSavingUser(true);
+    setUserActionMsg('');
+    try {
+      const res = await api.admin.updateUser(editingUser.id || editingUser._id, {
+        name: userEditDraft.name,
+        phone: userEditDraft.phone,
+        email: userEditDraft.email,
+        walletBalance: userEditDraft.walletBalance,
+        role: userEditDraft.role
+      });
+      if (res?.user) {
+        setUsersList(prev => prev.map(u => (u.id === editingUser.id || u._id === editingUser._id) ? { ...u, ...res.user } : u));
+        setUserActionMsg(`✅ Customer "${userEditDraft.name}" updated successfully!`);
+        setTimeout(() => setUserActionMsg(''), 4000);
+      }
+      setEditingUser(null);
+    } catch (err) {
+      alert(`Error updating customer: ${err.message}`);
+    } finally {
+      setIsSavingUser(false);
+    }
+  };
+
+  const handleConfirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    setIsDeletingUser(true);
+    const idToDelete = userToDelete.id || userToDelete._id || userToDelete.phone;
+    try {
+      await api.admin.deleteUser(idToDelete);
+      
+      // Remove from list
+      setUsersList(prev => prev.filter(u => u.id !== userToDelete.id && u._id !== userToDelete._id));
+      
+      // Real-time event for local tab / session
+      window.dispatchEvent(new CustomEvent('cleanz24_user_deleted', {
+        detail: { id: userToDelete.id, phone: userToDelete.phone }
+      }));
+
+      setUserActionMsg(`🗑️ Customer "${userToDelete.name}" (+91 ${userToDelete.phone?.replace(/\D/g, '').slice(-10)}) deleted. Session has been revoked.`);
+      setTimeout(() => setUserActionMsg(''), 6000);
+      setUserToDelete(null);
+    } catch (err) {
+      alert(`Error deleting customer: ${err.message}`);
+    } finally {
+      setIsDeletingUser(false);
+    }
   };
 
   const handleUpdateOrderStatus = (orderId, newStepIndex) => {
@@ -1310,6 +1378,20 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
         {activeTab === 'users' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             
+            {userActionMsg && (
+              <div style={{
+                padding: '12px 18px',
+                borderRadius: '12px',
+                background: userActionMsg.includes('🗑️') ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)',
+                border: `1px solid ${userActionMsg.includes('🗑️') ? 'rgba(239, 68, 68, 0.35)' : 'rgba(34, 197, 94, 0.35)'}`,
+                color: userActionMsg.includes('🗑️') ? '#EF4444' : '#4ADE80',
+                fontSize: '13px',
+                fontWeight: '600'
+              }}>
+                {userActionMsg}
+              </div>
+            )}
+
             {/* Header & Quick Actions */}
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
               <div>
@@ -1532,6 +1614,36 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
                           <div style={{ fontSize: '11px', color: t.textMuted, marginTop: '2px' }}>
                             ID: {user.id || 'N/A'} • Registered {joinedDate}
                           </div>
+                        </div>
+
+                        {/* Edit & Delete Action Buttons */}
+                        <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
+                          <button
+                            onClick={() => handleOpenEditUser(user)}
+                            style={{
+                              width: '32px', height: '32px', borderRadius: '9px',
+                              background: isDark ? 'rgba(255,255,255,0.06)' : '#F1F5F9',
+                              border: `1px solid ${t.cardBorder}`, color: t.textTitle,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              cursor: 'pointer', transition: 'all 0.15s ease'
+                            }}
+                            title="Edit Customer Profile"
+                          >
+                            <Pencil size={13} color="var(--primary-green)" />
+                          </button>
+                          <button
+                            onClick={() => setUserToDelete(user)}
+                            style={{
+                              width: '32px', height: '32px', borderRadius: '9px',
+                              background: 'rgba(239, 68, 68, 0.1)',
+                              border: '1px solid rgba(239, 68, 68, 0.3)', color: '#EF4444',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              cursor: 'pointer', transition: 'all 0.15s ease'
+                            }}
+                            title="Delete Customer & Revoke Session"
+                          >
+                            <Trash2 size={13} />
+                          </button>
                         </div>
                       </div>
 
@@ -3184,6 +3296,224 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
               </div>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: EDIT CUSTOMER DETAILS (CRM) ──────────────────────────────── */}
+      {editingUser && (
+        <div className="modal-overlay" style={{ zIndex: 3100 }}>
+          <div className="bottom-sheet animate-fade-in" style={{
+            padding: '24px', maxWidth: '480px', width: '100%',
+            background: isDark ? '#0F172A' : '#FFFFFF',
+            color: t.textTitle, borderRadius: '24px',
+            border: `1px solid ${t.cardBorder}`,
+            boxShadow: '0 20px 50px rgba(0,0,0,0.35)'
+          }}>
+            <div className="sheet-handle" />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ fontSize: '17px', margin: 0, color: t.textTitle, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Pencil size={16} color="var(--primary-green)" /> Edit Customer Profile
+                </h3>
+                <div style={{ fontSize: '11px', color: t.textMuted, marginTop: '2px' }}>
+                  ID: {editingUser.id || editingUser._id}
+                </div>
+              </div>
+              <button className="btn-icon" onClick={() => setEditingUser(null)}><X size={16} /></button>
+            </div>
+
+            <form onSubmit={handleSaveUserEdit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: '700', color: t.textMuted, display: 'block', marginBottom: '4px' }}>
+                  CUSTOMER FULL NAME
+                </label>
+                <input
+                  type="text"
+                  value={userEditDraft.name}
+                  onChange={e => setUserEditDraft({ ...userEditDraft, name: e.target.value })}
+                  placeholder="Full Name (e.g. Salman Khan)"
+                  required
+                  style={{
+                    width: '100%', padding: '10px 12px', borderRadius: '10px',
+                    background: t.inputBg, border: `1px solid ${t.inputBorder}`,
+                    color: t.textTitle, fontSize: '13px', outline: 'none', boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: '700', color: t.textMuted, display: 'block', marginBottom: '4px' }}>
+                  10-DIGIT MOBILE NUMBER
+                </label>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <span style={{
+                    padding: '10px 12px', borderRadius: '10px', background: isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9',
+                    border: `1px solid ${t.inputBorder}`, color: t.textMuted, fontSize: '13px', fontWeight: '700'
+                  }}>+91</span>
+                  <input
+                    type="tel"
+                    value={userEditDraft.phone}
+                    onChange={e => setUserEditDraft({ ...userEditDraft, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                    placeholder="9311159913"
+                    required
+                    style={{
+                      flex: 1, padding: '10px 12px', borderRadius: '10px',
+                      background: t.inputBg, border: `1px solid ${t.inputBorder}`,
+                      color: t.textTitle, fontSize: '13px', outline: 'none'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: '700', color: t.textMuted, display: 'block', marginBottom: '4px' }}>
+                  EMAIL ADDRESS (OPTIONAL)
+                </label>
+                <input
+                  type="email"
+                  value={userEditDraft.email}
+                  onChange={e => setUserEditDraft({ ...userEditDraft, email: e.target.value })}
+                  placeholder="customer@gmail.com"
+                  style={{
+                    width: '100%', padding: '10px 12px', borderRadius: '10px',
+                    background: t.inputBg, border: `1px solid ${t.inputBorder}`,
+                    color: t.textTitle, fontSize: '13px', outline: 'none', boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: '700', color: t.textMuted, display: 'block', marginBottom: '4px' }}>
+                    WALLET BALANCE (₹)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={userEditDraft.walletBalance}
+                    onChange={e => setUserEditDraft({ ...userEditDraft, walletBalance: Number(e.target.value) })}
+                    style={{
+                      width: '100%', padding: '10px 12px', borderRadius: '10px',
+                      background: t.inputBg, border: `1px solid ${t.inputBorder}`,
+                      color: t.textTitle, fontSize: '13px', outline: 'none', boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: '700', color: t.textMuted, display: 'block', marginBottom: '4px' }}>
+                    ROLE / ACCESS
+                  </label>
+                  <select
+                    value={userEditDraft.role}
+                    onChange={e => setUserEditDraft({ ...userEditDraft, role: e.target.value })}
+                    style={{
+                      width: '100%', padding: '10px 12px', borderRadius: '10px',
+                      background: t.inputBg, border: `1px solid ${t.inputBorder}`,
+                      color: t.textTitle, fontSize: '13px', outline: 'none', boxSizing: 'border-box', cursor: 'pointer'
+                    }}
+                  >
+                    <option value="customer">Customer</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingUser(null)}
+                  style={{
+                    flex: 1, padding: '12px', borderRadius: '12px',
+                    background: isDark ? 'rgba(255,255,255,0.06)' : '#F1F5F9',
+                    border: `1px solid ${t.cardBorder}`, color: t.textTitle,
+                    fontSize: '13px', fontWeight: '700', cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingUser}
+                  style={{
+                    flex: 2, padding: '12px', borderRadius: '12px',
+                    background: 'var(--primary-green)', border: 'none',
+                    color: '#FFF', fontSize: '13px', fontWeight: '700',
+                    cursor: isSavingUser ? 'not-allowed' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+                  }}
+                >
+                  {isSavingUser ? 'Saving to Database...' : <><Check size={15} /> Save Changes</>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: CONFIRM DELETE CUSTOMER & REVOKE SESSION ─────────────────── */}
+      {userToDelete && (
+        <div className="modal-overlay" style={{ zIndex: 3200 }}>
+          <div className="bottom-sheet animate-fade-in" style={{
+            padding: '24px', maxWidth: '440px', width: '100%',
+            background: isDark ? '#0F172A' : '#FFFFFF',
+            color: t.textTitle, borderRadius: '24px',
+            border: '1px solid rgba(239, 68, 68, 0.4)',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.45)'
+          }}>
+            <div className="sheet-handle" />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div style={{
+                width: '42px', height: '42px', borderRadius: '50%',
+                background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>
+                <Trash2 size={20} />
+              </div>
+              <button className="btn-icon" onClick={() => setUserToDelete(null)}><X size={16} /></button>
+            </div>
+
+            <h3 style={{ fontSize: '17px', margin: '0 0 8px 0', color: t.textTitle }}>
+              Delete Customer Account?
+            </h3>
+            <div style={{
+              padding: '12px', borderRadius: '12px',
+              background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)',
+              fontSize: '13px', color: isDark ? '#FCA5A5' : '#B91C1C', lineHeight: 1.5, marginBottom: '14px'
+            }}>
+              <strong>Customer:</strong> {userToDelete.name || 'Customer'} ({userToDelete.phone})<br />
+              ⚠️ <strong>Auto-Logout Notice:</strong> Ye user ke device se <strong>automatic logout</strong> ho jayega aur session turant revoke ho jayega. Dubara aane ke liye unhe naye user ki tarah register karna padega.
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setUserToDelete(null)}
+                style={{
+                  flex: 1, padding: '12px', borderRadius: '12px',
+                  background: isDark ? 'rgba(255,255,255,0.06)' : '#F1F5F9',
+                  border: `1px solid ${t.cardBorder}`, color: t.textTitle,
+                  fontSize: '13px', fontWeight: '700', cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteUser}
+                disabled={isDeletingUser}
+                style={{
+                  flex: 2, padding: '12px', borderRadius: '12px',
+                  background: '#EF4444', border: 'none',
+                  color: '#FFF', fontSize: '13px', fontWeight: '700',
+                  cursor: isDeletingUser ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)'
+                }}
+              >
+                {isDeletingUser ? 'Deleting & Revoking...' : <><Trash2 size={14} /> Yes, Delete User</>}
+              </button>
+            </div>
           </div>
         </div>
       )}
