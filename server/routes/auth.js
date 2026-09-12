@@ -178,14 +178,14 @@ router.post("/verify-whatsapp-otp", async (req, res) => {
       if (!user) {
         user = await User.create({
           id: "usr_" + Date.now(),
-          name: (name && name.trim() && name.trim() !== "Customer") ? name.trim() : "",
+          name: (name && name.trim()) ? name.trim() : "Customer",
           phone: `+91 ${cleanPhone}`,
           email: email || "",
           role: "customer",
           walletBalance: 0,
           addresses: address ? [{ id: "addr_" + Date.now(), title: "Home", badge: "Saved", address, phone: `+91 ${cleanPhone}`, type: "home" }] : []
         });
-      } else if (name && name.trim() && name.trim() !== "Customer") {
+      } else if (name && name.trim()) {
         user.name = name.trim();
         if (email) user.email = email;
         await user.save();
@@ -205,7 +205,7 @@ router.post("/verify-whatsapp-otp", async (req, res) => {
     if (!user) {
       user = {
         id: "usr_" + Date.now(),
-        name: (name && name.trim() && name.trim() !== "Customer") ? name.trim() : "",
+        name: (name && name.trim()) ? name.trim() : "Customer",
         phone: `+91 ${cleanPhone}`,
         email: email || "",
         role: "customer",
@@ -289,14 +289,14 @@ router.post("/verify-sms-otp", async (req, res) => {
       if (!user) {
         user = await User.create({
           id: "usr_" + Date.now(),
-          name: (name && name.trim() && name.trim() !== "Customer") ? name.trim() : "",
+          name: (name && name.trim()) ? name.trim() : "Customer",
           phone: `+91 ${cleanPhone}`,
           email: email || "",
           role: "customer",
           walletBalance: 0,
           addresses: address ? [{ id: "addr_" + Date.now(), title: "Home", badge: "Saved", address, phone: `+91 ${cleanPhone}`, type: "home" }] : []
         });
-      } else if (name && name.trim() && name.trim() !== "Customer") {
+      } else if (name && name.trim()) {
         user.name = name.trim();
         if (email) user.email = email;
         await user.save();
@@ -316,7 +316,7 @@ router.post("/verify-sms-otp", async (req, res) => {
     if (!user) {
       user = {
         id: "usr_" + Date.now(),
-        name: (name && name.trim() && name.trim() !== "Customer") ? name.trim() : "",
+        name: (name && name.trim()) ? name.trim() : "Customer",
         phone: `+91 ${cleanPhone}`,
         email: email || "",
         role: "customer",

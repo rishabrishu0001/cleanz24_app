@@ -13,7 +13,7 @@ const addressSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
-  name: { type: String, required: true },
+  name: { type: String, default: "Customer" },
   phone: { type: String, required: true, unique: true },
   email: { type: String, default: "" },
   role: { type: String, enum: ["customer", "admin", "valet"], default: "customer" },
