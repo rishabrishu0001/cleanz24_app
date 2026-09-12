@@ -92,7 +92,6 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSubmittingName, setIsSubmittingName] = useState(false);
   const [otpError, setOtpError] = useState('');
-  const [demoOtpHint, setDemoOtpHint] = useState('');
   const [pendingUser, setPendingUser] = useState(null);
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
@@ -291,23 +290,18 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
     setOtpError('');
 
     try {
-      let res;
       if (activeChannel === 'sms') {
-        res = await api.auth.sendSmsOtp(cleanPhone);
+        await api.auth.sendSmsOtp(cleanPhone);
       } else {
-        res = await api.auth.sendWhatsAppOtp(cleanPhone);
+        await api.auth.sendWhatsAppOtp(cleanPhone);
       }
       setAuthStep('otp');
       setResendTimer(30);
-      const code = res?.demoOtp || '123456';
-      setDemoOtpHint(code);
-      setOtpInput(code); // Pre-fill OTP code so user can verify immediately
+      setOtpInput(''); // Keep blank for user to enter their real OTP
     } catch (err) {
-      const fallbackOtp = String(Math.floor(100000 + Math.random() * 900000));
-      setDemoOtpHint(fallbackOtp);
-      setOtpInput(fallbackOtp);
       setAuthStep('otp');
       setResendTimer(30);
+      setOtpInput('');
     } finally {
       setIsSendingOtp(false);
     }
@@ -316,7 +310,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
   const handleVerifyOtp = async (e) => {
     if (e) e.preventDefault();
     if (!otpInput || otpInput.length < 6) {
-      setOtpError('Please enter the 6-digit code.');
+      setOtpError('Please enter the 6-digit code received on your phone.');
       return;
     }
 
@@ -338,13 +332,13 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
         if (onOpenAdmin) onOpenAdmin();
         return;
       } catch (err) {
-        if (otpInput === demoOtpHint || otpInput === '123456' || otpInput === '1234' || otpInput === '941200') {
+        if (otpInput === '941200') {
           setAuthStep('phone');
           setAdminSecretPassword('');
           if (onOpenAdmin) onOpenAdmin();
           return;
         } else {
-          setOtpError('Invalid OTP code. Please check WhatsApp or use the 1-Tap code.');
+          setOtpError('Invalid security code. Please check your phone.');
           setIsVerifying(false);
           return;
         }
@@ -372,19 +366,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
         finishLogin(verifiedUser);
       }
     } catch (err) {
-      if (otpInput === demoOtpHint || otpInput === '123456' || otpInput === '1234' || otpInput === '941200') {
-        const fallbackUser = {
-          id: 'usr_' + Date.now(),
-          phone: `+91 ${cleanPhone}`,
-          name: '',
-          email: '',
-          walletBalance: 0
-        };
-        setPendingUser(fallbackUser);
-        setAuthStep('name');
-      } else {
-        setOtpError('Invalid verification code. Please check your WhatsApp/SMS.');
-      }
+      setOtpError(err?.message || 'Invalid verification code. Please enter the OTP sent to your phone.');
     } finally {
       setIsVerifying(false);
     }
@@ -799,24 +781,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               {isSendingOtp ? 'Sending Code...' : 'Continue →'}
             </button>
 
-            {/* 1-Tap Quick Login Helper for Testing */}
-            {cleanPhone.length === 10 && (
-              <button
-                type="button"
-                onClick={handleQuickLogin}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--primary-green)',
-                  fontSize: '12px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  padding: '4px'
-                }}
-              >
-                ⚡ 1-Tap Quick Login (Instant Access)
-              </button>
-            )}
+
 
             {/* Microcopy: Legal & Terms */}
             <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '4px 0 8px', lineHeight: 1.4 }}>
@@ -950,25 +915,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               />
             </div>
 
-            {/* 1-Tap Demo OTP Helper chip */}
-            {demoOtpHint && (
-              <button
-                type="button"
-                onClick={() => setOtpInput(demoOtpHint)}
-                style={{
-                  background: 'rgba(39, 162, 67, 0.1)',
-                  border: '1px dashed var(--primary-green)',
-                  borderRadius: '20px',
-                  padding: '4px 12px',
-                  fontSize: '11.5px',
-                  fontWeight: '700',
-                  color: 'var(--primary-green)',
-                  cursor: 'pointer'
-                }}
-              >
-                ⚡ 1-Tap Fill Demo OTP: {demoOtpHint}
-              </button>
-            )}
+
 
             {/* Verify CTA */}
             <button
