@@ -4,7 +4,8 @@ import {
   DollarSign, MapPin, Plus, Pencil, Trash2, CheckCircle2,
   Clock, Truck, Check, X, Search, Filter, Phone, MessageCircle,
   ChevronRight, ArrowUpRight, BarChart3, Tag, Sparkles, Building2,
-  Lock, Eye, AlertCircle, RefreshCw, Smartphone, Sun, Moon
+  Lock, Eye, AlertCircle, RefreshCw, Smartphone, Sun, Moon,
+  Mail, Copy, ExternalLink, Wallet
 } from 'lucide-react';
 import initialStoresData from '../data/stores.json';
 import api from '../services/api.js';
@@ -118,6 +119,13 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
   const [newCustomPriceDraft, setNewCustomPriceDraft] = useState({
     name: '', service: 'Dry Clean', price: 249, unit: '/ pc'
   });
+
+  // ── Registered Customers State (CRM & Mobile Search) ──────────────────────
+  const [usersList, setUsersList] = useState([]);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [userFilterRole, setUserFilterRole] = useState('all'); // 'all' | 'customer' | 'admin' | 'has_address'
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [copiedPhoneId, setCopiedPhoneId] = useState(null);
 
   // ── Orders State (CRUD & Status Stepper) ────────────────────────────────────
   const [ordersList, setOrdersList] = useState([
@@ -269,8 +277,32 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
           }
         })
         .catch(err => console.log('Using local stores in AdminPanel:', err.message));
+
+      // Fetch registered customers from MongoDB Atlas / backend
+      loadAdminUsers();
     }
   }, [isAuthenticated]);
+
+  const loadAdminUsers = (search) => {
+    setIsLoadingUsers(true);
+    api.admin.getUsers(search)
+      .then(res => {
+        if (res.users) {
+          setUsersList(res.users);
+        }
+      })
+      .catch(err => console.log('Error loading users in AdminPanel:', err.message))
+      .finally(() => setIsLoadingUsers(false));
+  };
+
+  const handleCopyPhone = (phone, userId) => {
+    if (!phone) return;
+    try {
+      navigator.clipboard?.writeText(phone);
+      setCopiedPhoneId(userId);
+      setTimeout(() => setCopiedPhoneId(null), 2000);
+    } catch (_) {}
+  };
 
   const handleUpdateOrderStatus = (orderId, newStepIndex) => {
     const newStatus = ORDER_STATUS_STEPS[newStepIndex - 1];
@@ -531,10 +563,30 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
   const availableTabs = [
     { id: 'overview', label: 'Pan-India Overview', icon: BarChart3 },
     { id: 'orders', label: `All Orders (${ordersList.length})`, icon: Package },
+    { id: 'users', label: `Customers (${usersList.length})`, icon: Users },
     { id: 'stores', label: `100+ Studios (${storesList.length})`, icon: Store },
     { id: 'pricing', label: 'Master Pricing CRUD', icon: Tag },
     { id: 'fleet', label: 'Valets & VIP Fleet', icon: Truck },
   ];
+
+  // Filtered users for CRM Directory & Phone Search
+  const filteredUsers = usersList.filter(u => {
+    if (userFilterRole === 'customer' && u.role === 'admin') return false;
+    if (userFilterRole === 'admin' && u.role !== 'admin') return false;
+    if (userFilterRole === 'has_address' && (!u.addresses || u.addresses.length === 0)) return false;
+
+    if (userSearchQuery.trim()) {
+      const q = userSearchQuery.trim().toLowerCase();
+      const cleanQ = q.replace(/\D/g, '');
+      const nameMatch = u.name && u.name.toLowerCase().includes(q);
+      const emailMatch = u.email && u.email.toLowerCase().includes(q);
+      const phoneClean = u.phone ? u.phone.replace(/\D/g, '') : '';
+      const phoneMatch = phoneClean.includes(cleanQ || q) || (u.phone && u.phone.toLowerCase().includes(q));
+      const addressMatch = Array.isArray(u.addresses) && u.addresses.some(a => a.address && a.address.toLowerCase().includes(q));
+      return nameMatch || emailMatch || phoneMatch || addressMatch;
+    }
+    return true;
+  });
 
   // ── Dynamic Theme Tokens (Light / Dark Mode) ────────────────────────────────
   const isDark = darkMode;
@@ -951,7 +1003,7 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
                 { title: "Turnover", val: selectedStudio === 'All Stores' ? '₹48,920' : '₹12,450', sub: '+18.4% today', icon: DollarSign, color: '#16A34A', targetTab: 'orders' },
                 { title: 'Active Studios', val: `${storesList.length} Active`, sub: 'Pan-India Network →', icon: Store, color: '#D97706', targetTab: 'stores' },
                 { title: 'Today Orders', val: `${ordersList.length}`, sub: 'Across all studios →', icon: Package, color: '#2563EB', targetTab: 'orders' },
-                { title: 'VIP Customers', val: '1,420 Active', sub: '98.2% Satisfaction', icon: Users, color: '#9333EA' }
+                { title: 'Registered Customers', val: `${usersList.length} Active`, sub: 'Search by mobile # →', icon: Users, color: '#9333EA', targetTab: 'users' }
               ].map((stat, i) => {
                 const IconComp = stat.icon;
                 return (
@@ -1250,6 +1302,400 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
                 </tbody>
               </table>
             </div>
+
+          </div>
+        )}
+
+        {/* ── TAB: REGISTERED CUSTOMERS DIRECTORY & MOBILE SEARCH ─────────────── */}
+        {activeTab === 'users' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            
+            {/* Header & Quick Actions */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: t.textTitle, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Users size={20} color="var(--primary-green)" />
+                  Registered Customers & CRM Directory
+                </h3>
+                <div style={{ fontSize: '12px', color: t.textMuted }}>
+                  Live customer profiles synced from MongoDB Atlas. Search by mobile number or name.
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="badge badge-green" style={{ fontSize: '11px', padding: '5px 10px' }}>
+                  {filteredUsers.length} of {usersList.length} Customers
+                </span>
+                <button
+                  onClick={() => loadAdminUsers(userSearchQuery)}
+                  disabled={isLoadingUsers}
+                  style={{
+                    padding: '7px 12px',
+                    borderRadius: '10px',
+                    border: `1px solid ${t.cardBorder}`,
+                    background: isDark ? 'rgba(255,255,255,0.06)' : '#FFFFFF',
+                    color: t.textTitle,
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    cursor: 'pointer',
+                    boxShadow: t.cardShadow
+                  }}
+                  title="Reload from MongoDB"
+                >
+                  <RefreshCw size={13} className={isLoadingUsers ? 'animate-spin' : ''} />
+                  {isLoadingUsers ? 'Refreshing...' : 'Refresh'}
+                </button>
+              </div>
+            </div>
+
+            {/* Search & Filter Bar */}
+            <div style={{
+              background: t.cardBg,
+              border: `1px solid ${t.cardBorder}`,
+              borderRadius: '16px',
+              padding: '14px 16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              boxShadow: t.cardShadow
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary-green)' }} />
+                  <input
+                    type="text"
+                    placeholder="🔍 Search by mobile number (e.g. 9311159913, 9310590680) or customer name..."
+                    value={userSearchQuery}
+                    onChange={e => setUserSearchQuery(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 36px 10px 38px',
+                      borderRadius: '12px',
+                      background: t.inputBg,
+                      border: `1px solid ${userSearchQuery ? 'var(--primary-green)' : t.inputBorder}`,
+                      color: t.textTitle,
+                      fontSize: '13px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  {userSearchQuery && (
+                    <button
+                      onClick={() => setUserSearchQuery('')}
+                      style={{
+                        position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+                        background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', padding: '4px'
+                      }}
+                      title="Clear search"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Filter Chips */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', color: t.textMuted, fontWeight: '600' }}>FILTER:</span>
+                {[
+                  { id: 'all', label: `All (${usersList.length})` },
+                  { id: 'customer', label: `Customers (${usersList.filter(u => u.role !== 'admin').length})` },
+                  { id: 'has_address', label: `With Addresses (${usersList.filter(u => u.addresses && u.addresses.length > 0).length})` },
+                  { id: 'admin', label: `Admins (${usersList.filter(u => u.role === 'admin').length})` }
+                ].map(chip => (
+                  <button
+                    key={chip.id}
+                    onClick={() => setUserFilterRole(chip.id)}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '20px',
+                      border: `1px solid ${userFilterRole === chip.id ? 'var(--primary-green)' : t.cardBorder}`,
+                      background: userFilterRole === chip.id ? 'rgba(39, 162, 67, 0.15)' : 'transparent',
+                      color: userFilterRole === chip.id ? 'var(--primary-green)' : t.textMuted,
+                      fontSize: '11px',
+                      fontWeight: userFilterRole === chip.id ? '700' : '500',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Users Directory List / Grid */}
+            {filteredUsers.length === 0 ? (
+              <div style={{
+                background: t.cardBg,
+                border: `1px solid ${t.cardBorder}`,
+                borderRadius: '16px',
+                padding: '40px 20px',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <div style={{
+                  width: '54px', height: '54px', borderRadius: '50%',
+                  background: 'rgba(39, 162, 67, 0.1)', color: 'var(--primary-green)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <Search size={26} />
+                </div>
+                <div style={{ fontWeight: '700', fontSize: '15px', color: t.textTitle }}>
+                  {userSearchQuery ? `No customer found matching "${userSearchQuery}"` : 'No registered customers found'}
+                </div>
+                <div style={{ fontSize: '12px', color: t.textMuted, maxWidth: '360px', lineHeight: 1.5 }}>
+                  {userSearchQuery 
+                    ? 'Check if the mobile number has 10 digits or try searching with customer name.' 
+                    : 'When users register or login via OTP, their profile will automatically appear here.'}
+                </div>
+                {userSearchQuery && (
+                  <button
+                    onClick={() => setUserSearchQuery('')}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '10px',
+                      background: 'var(--primary-green)',
+                      color: '#FFF',
+                      border: 'none',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      marginTop: '6px'
+                    }}
+                  >
+                    Clear Search
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                gap: '14px'
+              }}>
+                {filteredUsers.map((user, idx) => {
+                  const initials = (user.name || 'CU')
+                    .split(' ')
+                    .map(n => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2);
+                  const cleanPhone = user.phone ? user.phone.replace(/\D/g, '').slice(-10) : '';
+                  const joinedDate = user.createdAt 
+                    ? new Date(user.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                    : 'Active';
+
+                  return (
+                    <div
+                      key={user.id || idx}
+                      style={{
+                        background: t.cardBg,
+                        border: `1px solid ${t.cardBorder}`,
+                        borderRadius: '16px',
+                        padding: '16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                        boxShadow: t.cardShadow,
+                        transition: 'transform 0.15s ease, border-color 0.15s ease'
+                      }}
+                    >
+                      {/* Top: Avatar, Name & Role */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                          width: '44px', height: '44px', borderRadius: '12px',
+                          background: user.role === 'admin'
+                            ? 'linear-gradient(135deg, #7C3AED, #9333EA)'
+                            : 'linear-gradient(135deg, #16A34A, #22C55E)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: '#FFF', fontWeight: '800', fontSize: '16px',
+                          flexShrink: 0
+                        }}>
+                          {initials}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                            <span style={{ fontWeight: '800', fontSize: '15px', color: t.textTitle }}>
+                              {user.name || 'Customer'}
+                            </span>
+                            <span className={user.role === 'admin' ? 'badge badge-amber' : 'badge badge-green'} style={{ fontSize: '9px' }}>
+                              {user.role === 'admin' ? 'Master Admin' : 'Customer'}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '11px', color: t.textMuted, marginTop: '2px' }}>
+                            ID: {user.id || 'N/A'} • Registered {joinedDate}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Phone & Contact Details */}
+                      <div style={{
+                        padding: '10px 12px',
+                        borderRadius: '12px',
+                        background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                        border: `1px solid ${t.subCardBorder}`,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px'
+                      }}>
+                        {/* Phone with 1-tap Actions */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Phone size={13} color="var(--primary-green)" />
+                            <span style={{ fontWeight: '700', fontSize: '13px', color: 'var(--primary-green)' }}>
+                              {user.phone || 'No phone'}
+                            </span>
+                          </div>
+
+                          {cleanPhone && (
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              <button
+                                onClick={() => handleCopyPhone(user.phone, user.id)}
+                                style={{
+                                  padding: '4px 7px',
+                                  borderRadius: '6px',
+                                  background: 'transparent',
+                                  border: `1px solid ${t.cardBorder}`,
+                                  color: copiedPhoneId === user.id ? 'var(--primary-green)' : t.textMuted,
+                                  fontSize: '10px',
+                                  cursor: 'pointer',
+                                  display: 'flex', alignItems: 'center', gap: '3px'
+                                }}
+                                title="Copy Phone Number"
+                              >
+                                {copiedPhoneId === user.id ? <Check size={10} /> : <Copy size={10} />}
+                                {copiedPhoneId === user.id ? 'Copied' : 'Copy'}
+                              </button>
+                              <a
+                                href={`https://wa.me/91${cleanPhone}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{
+                                  padding: '4px 8px',
+                                  borderRadius: '6px',
+                                  background: 'rgba(37, 211, 102, 0.15)',
+                                  border: '1px solid rgba(37, 211, 102, 0.35)',
+                                  color: '#25D366',
+                                  fontSize: '10px',
+                                  fontWeight: '700',
+                                  textDecoration: 'none',
+                                  display: 'flex', alignItems: 'center', gap: '3px'
+                                }}
+                                title="Chat on WhatsApp"
+                              >
+                                <MessageCircle size={10} /> WhatsApp
+                              </a>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Email */}
+                        {user.email && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: t.textBody }}>
+                            <Mail size={12} color={t.textMuted} />
+                            <span>{user.email}</span>
+                          </div>
+                        )}
+
+                        {/* Wallet Balance */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: t.textMuted }}>
+                          <Wallet size={12} color={t.textMuted} />
+                          <span>Wallet Balance: <strong style={{ color: t.textTitle }}>₹{user.walletBalance || 0}</strong></span>
+                        </div>
+                      </div>
+
+                      {/* Saved Pickup Addresses */}
+                      <div>
+                        <div style={{ fontSize: '11px', fontWeight: '700', color: t.textMuted, marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>SAVED PICKUP ADDRESSES</span>
+                          <span>{user.addresses?.length || 0}</span>
+                        </div>
+
+                        {user.addresses && user.addresses.length > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {user.addresses.map((addr, aIdx) => (
+                              <div
+                                key={addr.id || aIdx}
+                                style={{
+                                  padding: '7px 10px',
+                                  borderRadius: '8px',
+                                  background: isDark ? 'rgba(255,255,255,0.02)' : '#F8FAFC',
+                                  border: `1px solid ${t.cardBorder}`,
+                                  fontSize: '11px',
+                                  color: t.textBody,
+                                  display: 'flex',
+                                  gap: '6px',
+                                  alignItems: 'flex-start'
+                                }}
+                              >
+                                <MapPin size={12} color="var(--primary-green)" style={{ marginTop: '2px', flexShrink: 0 }} />
+                                <div style={{ flex: 1 }}>
+                                  <strong style={{ color: t.textTitle }}>{addr.title || addr.label || 'Address'}: </strong>
+                                  <span>{addr.address}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={{
+                            padding: '7px 10px',
+                            borderRadius: '8px',
+                            background: isDark ? 'rgba(255,255,255,0.02)' : '#F8FAFC',
+                            border: `1px dashed ${t.cardBorder}`,
+                            fontSize: '11px',
+                            color: t.textMuted,
+                            textAlign: 'center'
+                          }}>
+                            No saved addresses yet
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Card Footer: View Customer Orders */}
+                      <div style={{ marginTop: 'auto', paddingTop: '6px', borderTop: `1px solid ${t.cardBorder}` }}>
+                        <button
+                          onClick={() => {
+                            if (cleanPhone) {
+                              setOrderSearch(cleanPhone);
+                            } else if (user.name) {
+                              setOrderSearch(user.name);
+                            }
+                            setActiveTab('orders');
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '8px',
+                            borderRadius: '10px',
+                            background: isDark ? 'rgba(39, 162, 67, 0.12)' : 'rgba(39, 162, 67, 0.08)',
+                            border: '1px solid rgba(39, 162, 67, 0.3)',
+                            color: 'var(--primary-green)',
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <Package size={13} />
+                          View Customer Orders
+                        </button>
+                      </div>
+
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
           </div>
         )}

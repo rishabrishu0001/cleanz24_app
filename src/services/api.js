@@ -74,6 +74,7 @@ export const api = {
   admin: {
     getStats: (studioId) => fetchJSON(`/admin/stats?studioId=${encodeURIComponent(studioId || 'all')}`),
     getOrders: (studioId) => fetchJSON(`/admin/orders?studioId=${encodeURIComponent(studioId || 'all')}`),
+    getUsers: (search) => fetchJSON(`/admin/users${search ? `?search=${encodeURIComponent(search)}` : ''}`),
     assignValet: (orderId, valetId) => fetchJSON(`/admin/orders/${orderId}/assign`, {
       method: 'PATCH',
       body: JSON.stringify({ valetId })

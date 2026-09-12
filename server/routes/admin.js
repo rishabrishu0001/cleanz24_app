@@ -1,7 +1,45 @@
-﻿import express from "express";
-import { Order, Valet, Store, isMongoConnected, getFallbackDb } from "../db.js";
+import express from "express";
+import { User, Order, Valet, Store, isMongoConnected, getFallbackDb } from "../db.js";
 
 const router = express.Router();
+
+// GET /api/admin/users - Search and list all registered customers
+router.get("/users", async (req, res) => {
+  const { search } = req.query;
+  try {
+    if (isMongoConnected) {
+      let query = {};
+      if (search && search.trim()) {
+        const s = search.trim();
+        const cleanPhone = s.replace(/\D/g, "");
+        query = {
+          $or: [
+            { name: { $regex: s, $options: "i" } },
+            { email: { $regex: s, $options: "i" } },
+            ...(cleanPhone ? [{ phone: { $regex: cleanPhone } }] : [{ phone: { $regex: s, $options: "i" } }])
+          ]
+        };
+      }
+      const users = await User.find(query).sort({ createdAt: -1 });
+      return res.json({ success: true, users, total: users.length });
+    }
+
+    const db = getFallbackDb();
+    let users = db.users || [];
+    if (search && search.trim()) {
+      const s = search.trim().toLowerCase();
+      const cleanPhone = s.replace(/\D/g, "");
+      users = users.filter(u => 
+        (u.name && u.name.toLowerCase().includes(s)) ||
+        (u.email && u.email.toLowerCase().includes(s)) ||
+        (u.phone && cleanPhone && u.phone.replace(/\D/g, "").includes(cleanPhone))
+      );
+    }
+    return res.json({ success: true, users: [...users].reverse(), total: users.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // GET /api/admin/stats
 router.get("/stats", async (req, res) => {
