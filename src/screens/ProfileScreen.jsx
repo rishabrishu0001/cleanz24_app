@@ -144,6 +144,11 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileDraft, setProfileDraft] = useState({ ...profile });
 
+  // ── Address State (Defaults to empty for each individual user) ─────────────
+  const [addresses, setAddresses] = useState([]);
+  const [editingAddress, setEditingAddress] = useState(null);
+  const [addressDraft, setAddressDraft] = useState({ label: '', icon: 'home', address: '' });
+
   useEffect(() => {
     if (currentUser) {
       setIsLoggedIn(!!currentUser.isLoggedIn);
@@ -156,8 +161,17 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
       // Individual user address isolation
       if (currentUser.isLoggedIn) {
         const isRishab = currentUser.phone && currentUser.phone.includes('9310590680');
-        if (currentUser.addresses && currentUser.addresses.length > 0) {
-          setAddresses(currentUser.addresses);
+        let userAddrs = Array.isArray(currentUser.addresses) ? [...currentUser.addresses] : [];
+        if (!isRishab) {
+          // Strictly purge Rishab's hardcoded addresses from any other user's profile
+          userAddrs = userAddrs.filter(a =>
+            !a.address?.includes('Sector 41, Noida, C Block Market') &&
+            !a.address?.includes('Sector 137, Noida, Supertech Mart')
+          );
+        }
+
+        if (userAddrs.length > 0) {
+          setAddresses(userAddrs);
         } else if (isRishab) {
           setAddresses(RISHAB_ADDRESSES);
         } else {
@@ -166,7 +180,11 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
           api.auth.getAddresses(currentUser.id, currentUser.phone)
             .then(res => {
               if (res?.addresses && res.addresses.length > 0) {
-                setAddresses(res.addresses);
+                const clean = res.addresses.filter(a =>
+                  !a.address?.includes('Sector 41, Noida, C Block Market') &&
+                  !a.address?.includes('Sector 137, Noida, Supertech Mart')
+                );
+                setAddresses(clean);
               }
             })
             .catch(() => {});
@@ -192,11 +210,6 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
       if (setCurrentUser) setCurrentUser({ isLoggedIn: false, walletBalance: 0 });
     }
   };
-
-  // ── Address State (Defaults to empty for each individual user) ─────────────
-  const [addresses, setAddresses] = useState([]);
-  const [editingAddress, setEditingAddress] = useState(null);
-  const [addressDraft, setAddressDraft] = useState({ label: '', icon: 'home', address: '' });
 
   // ── Other Settings Modals & Preferences State ──────────────────────────────
   const [activeSettingsModal, setActiveSettingsModal] = useState(null); // 'notifications' | 'locker' | 'franchise'
@@ -1199,7 +1212,6 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
                 <h3 style={{ fontSize: '17px', margin: 0 }}>{profile.name}</h3>
-                <span className="badge badge-amber" style={{ fontSize: '10px' }}>VIP GOLD</span>
               </div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{profile.phone}</div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{profile.email}</div>
