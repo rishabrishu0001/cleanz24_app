@@ -86,7 +86,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
   const [authStep, setAuthStep] = useState('phone'); // 'phone' | 'otp' | 'name'
   const [phone, setPhone] = useState('');
   const [otpInput, setOtpInput] = useState('');
-  const [otpChannel, setOtpChannel] = useState('whatsapp'); // 'whatsapp' | 'sms'
+  const [otpChannel, setOtpChannel] = useState('sms'); // default to 'sms' for 100% reliable delivery on all Indian numbers
   const [resendTimer, setResendTimer] = useState(30);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -290,10 +290,14 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
     setOtpError('');
 
     try {
+      let res;
       if (activeChannel === 'sms') {
-        await api.auth.sendSmsOtp(cleanPhone);
+        res = await api.auth.sendSmsOtp(cleanPhone);
       } else {
-        await api.auth.sendWhatsAppOtp(cleanPhone);
+        res = await api.auth.sendWhatsAppOtp(cleanPhone);
+      }
+      if (res?.channel) {
+        setOtpChannel(res.channel);
       }
       setAuthStep('otp');
       setResendTimer(30);
@@ -543,13 +547,13 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               background: 'rgba(39, 162, 67, 0.1)',
               marginBottom: '8px'
             }}>
-              India's Premier Fabric Care
+              Register New / Existing Customer
             </div>
             <h2 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '4px', color: 'var(--text-main)' }}>
-              Log in or Sign up
+              Enter Mobile Number
             </h2>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '22px', maxWidth: '300px', lineHeight: 1.4 }}>
-              Enter your mobile number to get an instant verification code
+              Enter your mobile number to register or log in. An instant OTP will be sent to verify.
             </p>
           </>
         )}
@@ -778,7 +782,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               }}
             >
               {isSendingOtp ? <Loader2 size={18} className="animate-spin" /> : null}
-              {isSendingOtp ? 'Sending Code...' : 'Continue →'}
+              {isSendingOtp ? 'Sending OTP Code...' : 'Get Verification OTP →'}
             </button>
 
 

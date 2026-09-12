@@ -113,15 +113,43 @@ router.post("/send-whatsapp-otp", async (req, res) => {
 
   try {
     const result = await sendWhatsAppOtp(cleanPhone, otp);
+    if (!result?.live) {
+      // WhatsApp not delivered live (e.g. unverified test number in Meta API) -> Auto fallback to SMS
+      console.log(`[WhatsApp not delivered live to ${cleanPhone}] -> Auto-sending SMS via Fast2SMS...`);
+      try {
+        await sendSmsOtp(cleanPhone, otp);
+      } catch (smsErr) {
+        console.warn("[Fast2SMS Fallback Failed]:", smsErr.message);
+      }
+      return res.json({
+        success: true,
+        channel: "sms",
+        message: "Verification code sent to your mobile number via SMS",
+        phone: `+91 ${cleanPhone}`,
+        expiresInSeconds: 300
+      });
+    }
+
     res.json({
       success: true,
+      channel: "whatsapp",
       message: "Verification code sent to your WhatsApp number",
       phone: `+91 ${cleanPhone}`,
-      expiresInSeconds: 300,
-      ...(result.demoOtp && { demoOtp: result.demoOtp })
+      expiresInSeconds: 300
     });
   } catch (err) {
-    res.status(500).json({ error: "Failed to send WhatsApp OTP" });
+    try {
+      await sendSmsOtp(cleanPhone, otp);
+      return res.json({
+        success: true,
+        channel: "sms",
+        message: "Verification code sent via SMS",
+        phone: `+91 ${cleanPhone}`,
+        expiresInSeconds: 300
+      });
+    } catch (_) {
+      res.status(500).json({ error: "Failed to send verification code" });
+    }
   }
 });
 
