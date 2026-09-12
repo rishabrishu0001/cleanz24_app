@@ -466,15 +466,24 @@ router.get("/me", async (req, res) => {
 
 // GET /api/auth/addresses
 router.get("/addresses", async (req, res) => {
-  const userId = req.query.userId || "usr_rishab";
+  const { userId, phone } = req.query;
+  const cleanPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
+
+  // If no user specified, return empty
+  if (!userId && !cleanPhone) {
+    return res.json({ addresses: [] });
+  }
+
   try {
     if (isMongoConnected) {
-      const user = await User.findOne({ id: userId });
-      return res.json({ addresses: user ? user.addresses : [] });
+      let user = null;
+      if (userId) user = await User.findOne({ id: userId });
+      if (!user && cleanPhone) user = await User.findOne({ phone: { $regex: cleanPhone } });
+      return res.json({ addresses: user ? (user.addresses || []) : [] });
     }
     const db = getFallbackDb();
-    const user = db.users.find(u => u.id === userId);
-    res.json({ addresses: user ? user.addresses : [] });
+    const user = db.users.find(u => (userId && u.id === userId) || (cleanPhone && u.phone && u.phone.includes(cleanPhone)));
+    res.json({ addresses: user ? (user.addresses || []) : [] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -482,15 +491,16 @@ router.get("/addresses", async (req, res) => {
 
 // POST /api/auth/addresses
 router.post("/addresses", async (req, res) => {
-  const { userId, title, address, phone, lat, lng, type } = req.body;
+  const { userId, phone, title, address, lat, lng, type } = req.body;
   if (!address) return res.status(400).json({ error: "Address is required" });
 
+  const cleanPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
   const newAddr = {
     id: "addr_" + Date.now(),
-    title: title || "Custom",
+    title: title || "Home",
     badge: "Saved",
     address,
-    phone: phone || "+91 9310590680",
+    phone: phone || "",
     lat: lat || 28.5445,
     lng: lng || 77.3292,
     type: (type || "home").toLowerCase()
@@ -498,18 +508,55 @@ router.post("/addresses", async (req, res) => {
 
   try {
     if (isMongoConnected) {
-      const user = await User.findOne({ id: userId || "usr_rishab" });
+      let user = null;
+      if (userId) user = await User.findOne({ id: userId });
+      if (!user && cleanPhone) user = await User.findOne({ phone: { $regex: cleanPhone } });
       if (!user) return res.status(404).json({ error: "User not found" });
+
+      if (!user.addresses) user.addresses = [];
       user.addresses.unshift(newAddr);
       await user.save();
       return res.status(201).json({ success: true, address: newAddr, addresses: user.addresses });
     }
 
     const db = getFallbackDb();
-    const user = db.users.find(u => u.id === (userId || "usr_rishab"));
+    const user = db.users.find(u => (userId && u.id === userId) || (cleanPhone && u.phone && u.phone.includes(cleanPhone)));
     if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (!user.addresses) user.addresses = [];
     user.addresses.unshift(newAddr);
     saveFallbackDb(db);
+    res.status(201).json({ success: true, address: newAddr, addresses: user.addresses });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/auth/addresses/:id
+router.delete("/addresses/:id", async (req, res) => {
+  const { id } = req.params;
+  const { userId, phone } = req.query;
+  const cleanPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
+
+  try {
+    if (isMongoConnected) {
+      let user = null;
+      if (userId) user = await User.findOne({ id: userId });
+      if (!user && cleanPhone) user = await User.findOne({ phone: { $regex: cleanPhone } });
+      if (user && user.addresses) {
+        user.addresses = user.addresses.filter(a => a.id !== id && String(a.id) !== String(id));
+        await user.save();
+      }
+      return res.json({ success: true, addresses: user ? user.addresses : [] });
+    }
+
+    const db = getFallbackDb();
+    const user = db.users.find(u => (userId && u.id === userId) || (cleanPhone && u.phone && u.phone.includes(cleanPhone)));
+    if (user && user.addresses) {
+      user.addresses = user.addresses.filter(a => a.id !== id && String(a.id) !== String(id));
+      saveFallbackDb(db);
+    }
+    res.json({ success: true, addresses: user ? user.addresses : [] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

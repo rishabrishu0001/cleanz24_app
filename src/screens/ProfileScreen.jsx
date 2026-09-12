@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api.js';
 
-const INITIAL_ADDRESSES = [
+const RISHAB_ADDRESSES = [
   { id: 1, label: 'Home', icon: 'home', address: 'Sector 41, Noida, C Block Market, UP 201303' },
   { id: 2, label: 'Work', icon: 'work', address: 'Sector 137, Noida, Supertech Mart, UP 201304' },
 ];
@@ -152,6 +152,28 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
         phone: currentUser.phone || '',
         email: currentUser.email || ''
       });
+
+      // Individual user address isolation
+      if (currentUser.isLoggedIn) {
+        const isRishab = currentUser.phone && currentUser.phone.includes('9310590680');
+        if (currentUser.addresses && currentUser.addresses.length > 0) {
+          setAddresses(currentUser.addresses);
+        } else if (isRishab) {
+          setAddresses(RISHAB_ADDRESSES);
+        } else {
+          // New/other individual user starts with 0 addresses
+          setAddresses([]);
+          api.auth.getAddresses(currentUser.id, currentUser.phone)
+            .then(res => {
+              if (res?.addresses && res.addresses.length > 0) {
+                setAddresses(res.addresses);
+              }
+            })
+            .catch(() => {});
+        }
+      } else {
+        setAddresses([]);
+      }
     }
   }, [currentUser]);
 
@@ -161,6 +183,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
     setAuthStep('phone');
     setOtpInput('');
     setPhone('');
+    setAddresses([]);
     setAdminSecretPassword('');
     if (onLogout) {
       onLogout();
@@ -170,8 +193,8 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
     }
   };
 
-  // ── Address State ──────────────────────────────────────────────────────────
-  const [addresses, setAddresses] = useState(INITIAL_ADDRESSES);
+  // ── Address State (Defaults to empty for each individual user) ─────────────
+  const [addresses, setAddresses] = useState([]);
   const [editingAddress, setEditingAddress] = useState(null);
   const [addressDraft, setAddressDraft] = useState({ label: '', icon: 'home', address: '' });
 
@@ -228,19 +251,59 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
   const cancelProfileEdit = () => { setProfileDraft({ ...profile }); setEditingProfile(false); };
   const initials = (profile?.name || 'Customer').trim().split(/\s+/).filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'C';
 
-  // ── Address Handlers ───────────────────────────────────────────────────────
+  // ── Address Handlers (Per-user persistent) ─────────────────────────────────
   const startNewAddress = () => { setAddressDraft({ label: '', icon: 'home', address: '' }); setEditingAddress('new'); };
   const startEditAddress = (addr) => { setAddressDraft({ ...addr }); setEditingAddress(addr.id); };
-  const saveAddress = () => {
+  const saveAddress = async () => {
     if (!addressDraft.label.trim() || !addressDraft.address.trim()) return;
+    const newAddr = {
+      id: editingAddress === 'new' ? 'addr_' + Date.now() : editingAddress,
+      label: addressDraft.label.trim(),
+      icon: addressDraft.icon || 'home',
+      address: addressDraft.address.trim()
+    };
+
+    let updatedList;
     if (editingAddress === 'new') {
-      setAddresses(prev => [...prev, { ...addressDraft, id: Date.now() }]);
+      updatedList = [newAddr, ...addresses];
     } else {
-      setAddresses(prev => prev.map(a => a.id === editingAddress ? { ...addressDraft, id: editingAddress } : a));
+      updatedList = addresses.map(a => a.id === editingAddress ? newAddr : a);
     }
+    setAddresses(updatedList);
     setEditingAddress(null);
+
+    // Save to user object & API
+    if (currentUser) {
+      const updatedUser = { ...currentUser, addresses: updatedList };
+      if (setCurrentUser) setCurrentUser(updatedUser);
+      try {
+        localStorage.setItem('cleanz24_user', JSON.stringify(updatedUser));
+      } catch (_) {}
+      try {
+        await api.auth.saveAddress({
+          userId: currentUser.id,
+          phone: currentUser.phone,
+          title: newAddr.label,
+          address: newAddr.address,
+          type: newAddr.icon
+        });
+      } catch (_) {}
+    }
   };
-  const deleteAddress = (id) => setAddresses(prev => prev.filter(a => a.id !== id));
+  const deleteAddress = async (id) => {
+    const updatedList = addresses.filter(a => a.id !== id && String(a.id) !== String(id));
+    setAddresses(updatedList);
+    if (currentUser) {
+      const updatedUser = { ...currentUser, addresses: updatedList };
+      if (setCurrentUser) setCurrentUser(updatedUser);
+      try {
+        localStorage.setItem('cleanz24_user', JSON.stringify(updatedUser));
+      } catch (_) {}
+      try {
+        await api.auth.deleteAddress(id, currentUser.id, currentUser.phone);
+      } catch (_) {}
+    }
+  };
 
   // ── Auth Handlers ──────────────────────────────────────────────────────────
   const finishLogin = (user) => {
@@ -1264,8 +1327,16 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
         )}
 
         {addresses.length === 0 && editingAddress !== 'new' && (
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', padding: '8px' }}>
-            No saved addresses. Tap + Add to create one.
+          <div style={{
+            fontSize: '12px',
+            color: 'var(--text-muted)',
+            textAlign: 'center',
+            padding: '16px 12px',
+            background: 'var(--bg-card-subtle)',
+            borderRadius: '12px',
+            border: '1px dashed var(--border-glass)'
+          }}>
+            📍 No saved pickup addresses yet. Tap <strong style={{ color: 'var(--primary-green)' }}>+ Add</strong> above to add your address.
           </div>
         )}
       </div>

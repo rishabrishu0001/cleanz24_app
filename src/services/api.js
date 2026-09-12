@@ -38,8 +38,9 @@ export const api = {
     register: (data) => fetchJSON('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
     getMe: (userId) => fetchJSON(`/auth/me?userId=${encodeURIComponent(userId || '')}`),
     updateProfile: (data) => fetchJSON('/auth/profile', { method: 'PUT', body: JSON.stringify(data) }),
-    getAddresses: (userId) => fetchJSON(`/auth/addresses?userId=${encodeURIComponent(userId || '')}`),
-    saveAddress: (data) => fetchJSON('/auth/addresses', { method: 'POST', body: JSON.stringify(data) })
+    getAddresses: (userId, phone) => fetchJSON(`/auth/addresses?userId=${encodeURIComponent(userId || '')}&phone=${encodeURIComponent(phone || '')}`),
+    saveAddress: (data) => fetchJSON('/auth/addresses', { method: 'POST', body: JSON.stringify(data) }),
+    deleteAddress: (id, userId, phone) => fetchJSON(`/auth/addresses/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId || '')}&phone=${encodeURIComponent(phone || '')}`, { method: 'DELETE' })
   },
 
   // ── Orders ──
