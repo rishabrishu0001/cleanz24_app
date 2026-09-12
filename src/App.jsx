@@ -403,11 +403,8 @@ export default function App() {
               onOpenNotifications={() => setShowNotifications(!showNotifications)}
               onOpenLocationPicker={() => setShowLocationPicker(true)}
               onOpenAuthModal={() => {
-                if (currentUser?.isLoggedIn) {
-                  setActiveTab('profile');
-                } else {
-                  setShowAuthModal(true);
-                }
+                setActiveTab('profile');
+                setShowAuthModal(false);
               }}
               currentUser={currentUser}
             />
@@ -422,8 +419,9 @@ export default function App() {
                   currentUser={currentUser}
                   setCurrentUser={setCurrentUser}
                   onLogout={handleLogout}
-                  onOpenAuthModal={() => setShowAuthModal(true)}
+                  onOpenAuthModal={() => setActiveTab('profile')}
                   onLoginSuccess={handleLoginSuccess}
+                  onNavigateTab={setActiveTab}
                 />
               ) : (
                 <>
@@ -434,7 +432,10 @@ export default function App() {
                       activeOrder={activeOrder}
                       currentUser={currentUser}
                       userName={currentUser?.name ? currentUser.name.split(' ')[0] : 'Guest'}
-                      onOpenAuthModal={() => setShowAuthModal(true)}
+                      onOpenAuthModal={() => {
+                        setActiveTab('profile');
+                        setShowAuthModal(false);
+                      }}
                       selectedStudio={selectedStudio}
                       onStudioChange={(key) => setSelectedStudio(key)}
                       userCoords={userCoords}
@@ -489,8 +490,9 @@ export default function App() {
                       currentUser={currentUser}
                       setCurrentUser={setCurrentUser}
                       onLogout={handleLogout}
-                      onOpenAuthModal={() => setShowAuthModal(true)}
+                      onOpenAuthModal={() => setActiveTab('profile')}
                       onLoginSuccess={handleLoginSuccess}
+                      onNavigateTab={setActiveTab}
                     />
                   )}
                 </>

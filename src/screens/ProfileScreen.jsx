@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   MapPin, MessageSquare,
-  ChevronRight, Bell, Lock, Store,
+  ChevronRight, ChevronLeft, Bell, Lock, Store,
   Pencil, Trash2, Plus, Check, X, Home, Briefcase, Navigation,
   LogOut, ShieldAlert, Smartphone, ArrowRight, ShieldCheck,
-  MessageCircle, Loader2, CheckCircle2, Eye, EyeOff, Key
+  MessageCircle, Loader2, CheckCircle2, Eye, EyeOff, Key, User,
+  UserCheck, Zap
 } from 'lucide-react';
 import api from '../services/api.js';
 
@@ -79,7 +80,7 @@ function AddressForm({ draft, setDraft, onSave, onCancel }) {
   );
 }
 
-export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, setCurrentUser, onLogout, onOpenAuthModal, onLoginSuccess }) {
+export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, setCurrentUser, onLogout, onOpenAuthModal, onLoginSuccess, onNavigateTab }) {
   // ── Auth / Session State ───────────────────────────────────────────────────
   const [isLoggedIn, setIsLoggedIn] = useState(currentUser ? !!currentUser.isLoggedIn : false);
   const [authMode, setAuthMode] = useState('signup'); // default to 'signup' for new users
@@ -103,6 +104,9 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
     if (onLoginSuccess) {
       onLoginSuccess(guestUser);
     }
+    if (onNavigateTab) {
+      onNavigateTab('home');
+    }
   };
 
   // New Customer Signup Fields
@@ -118,6 +122,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
   const [isVerifying, setIsVerifying] = useState(false);
   const [otpError, setOtpError] = useState('');
   const [demoOtpHint, setDemoOtpHint] = useState('');
+  const [alreadyCustomerUser, setAlreadyCustomerUser] = useState(null);
 
   // ── Stealth Admin State ──
   const [adminSecretPassword, setAdminSecretPassword] = useState('');
@@ -318,6 +323,22 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
       }
     }
 
+    // If signing up as New Customer, check if mobile number is already registered
+    if (authMode === 'signup') {
+      setIsSendingOtp(true);
+      setOtpError('');
+      try {
+        const checkRes = await api.auth.checkUser(cleanPhone);
+        if (checkRes?.exists) {
+          setIsSendingOtp(false);
+          setAlreadyCustomerUser(checkRes.user || { phone: cleanPhone, name: signupName });
+          return;
+        }
+      } catch (err) {
+        console.warn('Could not check user existence:', err);
+      }
+    }
+
     setIsSendingOtp(true);
     setOtpError('');
 
@@ -327,6 +348,31 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
       const code = res.demoOtp || '123456';
       setDemoOtpHint(code);
       setOtpInput(code); // Pre-fill OTP code so user can verify immediately
+    } catch (err) {
+      const fallbackOtp = String(Math.floor(100000 + Math.random() * 900000));
+      setDemoOtpHint(fallbackOtp);
+      setOtpStep(true);
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleProceedToLoginFromExisting = async (existingUser) => {
+    const rawPhone = (existingUser?.phone || signupPhone).replace(/\D/g, '').slice(-10);
+    const rawName = existingUser?.name || '';
+    setLoginPhone(rawPhone);
+    if (rawName) setLoginName(rawName);
+    setAlreadyCustomerUser(null);
+    setAuthMode('login');
+    setOtpError('');
+    setIsSendingOtp(true);
+
+    try {
+      const res = await api.auth.sendWhatsAppOtp(rawPhone);
+      setOtpStep(true);
+      const code = res.demoOtp || '123456';
+      setDemoOtpHint(code);
+      setOtpInput(code);
     } catch (err) {
       const fallbackOtp = String(Math.floor(100000 + Math.random() * 900000));
       setDemoOtpHint(fallbackOtp);
@@ -444,12 +490,63 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
     const isSpecialPhone = activePhoneDisplay.replace(/\D/g, '') === '9355395911';
 
     return (
-      <div className="animate-fade-in" style={{ padding: '24px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center' }}>
+      <div className="animate-fade-in" style={{ 
+        padding: '20px 16px 40px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'flex-start', 
+        minHeight: '100%', 
+        textAlign: 'center',
+        width: '100%'
+      }}>
+
+        {/* Back to App navigation if user entered as guest */}
+        {currentUser?.isGuest && (
+          <div style={{
+            width: '100%',
+            maxWidth: '320px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '16px'
+          }}>
+            <button
+              type="button"
+              onClick={() => onNavigateTab ? onNavigateTab('home') : null}
+              style={{
+                background: 'var(--bg-card-subtle)',
+                border: '1px solid var(--border-glass)',
+                borderRadius: '10px',
+                padding: '6px 12px',
+                color: 'var(--text-main)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                fontSize: '12.5px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <ChevronLeft size={16} color="var(--primary-green)" /> Back to App
+            </button>
+            <span style={{ fontSize: '11px', color: 'var(--primary-green)', fontWeight: '700', background: 'rgba(39, 162, 67, 0.1)', padding: '4px 10px', borderRadius: '12px' }}>
+              👤 Guest
+            </span>
+          </div>
+        )}
 
         {/* Top Logo / Icon */}
         <div style={{
           width: '68px',
           height: '68px',
+          minWidth: '68px',
+          minHeight: '68px',
+          maxWidth: '68px',
+          maxHeight: '68px',
+          aspectRatio: '1 / 1',
+          flexShrink: 0,
           borderRadius: '50%',
           background: 'rgba(39, 162, 67, 0.12)',
           border: '2px solid var(--primary-green)',
@@ -458,7 +555,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
           justifyContent: 'center',
           marginBottom: '14px'
         }}>
-          <Smartphone size={30} color="var(--primary-green)" />
+          <Smartphone size={30} color="var(--primary-green)" style={{ flexShrink: 0 }} />
         </div>
 
         {/* Title */}
@@ -491,7 +588,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
           }}>
             <button
               type="button"
-              onClick={() => { setAuthMode('login'); setOtpError(''); }}
+              onClick={() => { setAuthMode('login'); setOtpError(''); setAlreadyCustomerUser(null); }}
               style={{
                 flex: 1,
                 padding: '8px',
@@ -509,7 +606,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
             </button>
             <button
               type="button"
-              onClick={() => { setAuthMode('signup'); setOtpError(''); }}
+              onClick={() => { setAuthMode('signup'); setOtpError(''); setAlreadyCustomerUser(null); }}
               style={{
                 flex: 1,
                 padding: '8px',
@@ -524,6 +621,109 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               }}
             >
               New Customer ✨
+            </button>
+          </div>
+        )}
+
+        {/* ── ALREADY REGISTERED SCREEN (When existing user tries to sign up as New Customer) ── */}
+        {alreadyCustomerUser && (
+          <div className="animate-fade-in" style={{
+            width: '100%',
+            maxWidth: '320px',
+            padding: '24px 18px',
+            borderRadius: '20px',
+            background: 'var(--bg-card)',
+            border: '1.5px solid var(--primary-green)',
+            boxShadow: '0 12px 36px rgba(39, 162, 67, 0.16)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            marginBottom: '16px'
+          }}>
+            <div style={{
+              width: '60px',
+              height: '60px',
+              minWidth: '60px',
+              minHeight: '60px',
+              borderRadius: '50%',
+              background: 'rgba(39, 162, 67, 0.14)',
+              border: '2px solid var(--primary-green)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '14px',
+              flexShrink: 0
+            }}>
+              <UserCheck size={30} color="var(--primary-green)" />
+            </div>
+
+            <div style={{
+              display: 'inline-block',
+              fontSize: '10.5px',
+              fontWeight: '800',
+              color: 'var(--primary-green)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.8px',
+              padding: '3px 10px',
+              borderRadius: '20px',
+              background: 'rgba(39, 162, 67, 0.1)',
+              marginBottom: '8px'
+            }}>
+              Account Found
+            </div>
+
+            <h3 style={{ fontSize: '19px', fontWeight: '800', color: 'var(--text-main)', margin: '0 0 6px' }}>
+              Already a Customer! 🎉
+            </h3>
+
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5', margin: '0 0 16px' }}>
+              {alreadyCustomerUser.name ? <strong>{alreadyCustomerUser.name}, </strong> : ''}
+              mobile number <strong style={{ color: 'var(--primary-green)' }}>+91 {(alreadyCustomerUser.phone || signupPhone).replace(/\D/g, '').slice(-10)}</strong> is already registered with Cleanz24.
+            </p>
+
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => handleProceedToLoginFromExisting(alreadyCustomerUser)}
+              disabled={isSendingOtp}
+              style={{
+                width: '100%',
+                padding: '13px',
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: '800',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                marginBottom: '10px',
+                cursor: 'pointer'
+              }}
+            >
+              {isSendingOtp ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+              {isSendingOtp ? 'Sending OTP...' : 'Proceed to Log In →'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setAlreadyCustomerUser(null);
+                setSignupPhone('');
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-muted)',
+                fontSize: '12.5px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                padding: '6px'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-main)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+            >
+              ← Use a different phone number
             </button>
           </div>
         )}
@@ -652,40 +852,35 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               New here? Sign in as New Customer →
             </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '10px', margin: '8px 0 2px' }}>
-              <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }} />
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>OR</span>
-              <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }} />
-            </div>
-
             <button
               type="button"
               onClick={handleContinueAsGuest}
               style={{
-                width: '100%',
-                padding: '11px',
-                borderRadius: '12px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid var(--border-glass)',
-                color: 'var(--text-main)',
-                fontSize: '13px',
-                fontWeight: '700',
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-muted)',
+                fontSize: '12.5px',
+                fontWeight: '600',
                 cursor: 'pointer',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '8px',
+                gap: '5px',
+                marginTop: '10px',
+                padding: '6px 12px',
+                borderRadius: '20px',
                 transition: 'all 0.2s ease'
               }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--primary-green)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
             >
-              <User size={15} color="var(--primary-green)" />
-              Log in as Guest →
+              Skip &amp; Explore as Guest →
             </button>
           </form>
         )}
 
         {/* New Customer Registration Form */}
-        {!otpStep && authMode === 'signup' && (
+        {!otpStep && authMode === 'signup' && !alreadyCustomerUser && (
           <form onSubmit={handleSendOtp} style={{ width: '100%', maxWidth: '320px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
 
             {/* Promo Banner */}
@@ -853,34 +1048,29 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               Already have an account? Log in
             </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '10px', margin: '8px 0 2px' }}>
-              <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }} />
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>OR</span>
-              <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }} />
-            </div>
-
             <button
               type="button"
               onClick={handleContinueAsGuest}
               style={{
-                width: '100%',
-                padding: '11px',
-                borderRadius: '12px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid var(--border-glass)',
-                color: 'var(--text-main)',
-                fontSize: '13px',
-                fontWeight: '700',
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-muted)',
+                fontSize: '12.5px',
+                fontWeight: '600',
                 cursor: 'pointer',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '8px',
+                gap: '5px',
+                marginTop: '10px',
+                padding: '6px 12px',
+                borderRadius: '20px',
                 transition: 'all 0.2s ease'
               }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--primary-green)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
             >
-              <User size={15} color="var(--primary-green)" />
-              Log in as Guest →
+              Skip &amp; Explore as Guest →
             </button>
           </form>
         )}

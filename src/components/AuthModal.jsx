@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Smartphone, X, ArrowRight, ShieldCheck, MessageCircle,
-  Loader2, Eye, EyeOff, User, MapPin, ChevronLeft, RefreshCw
+  Loader2, Eye, EyeOff, User, MapPin, ChevronLeft, RefreshCw,
+  UserCheck, CheckCircle2, Zap
 } from 'lucide-react';
 import api from '../services/api.js';
 
@@ -258,6 +259,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [resendSeconds, setResendSeconds] = useState(0);
+  const [alreadyCustomer, setAlreadyCustomer] = useState(null);
 
   // Focus tracking for input styling
   const [focused, setFocused] = useState('');
@@ -267,6 +269,29 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
   const maskedPhone = cleanPhone.length >= 4
     ? `+91 XXXXX ${cleanPhone.slice(-5)}`
     : '+91 XXXXXXXXXX';
+
+  const handleProceedToLogin = async () => {
+    const rawPhone = (alreadyCustomer?.phone || cleanPhone).replace(/\D/g, '').slice(-10);
+    setAuthMode('login');
+    setPhone(rawPhone);
+    setAlreadyCustomer(null);
+    setError('');
+    setLoading(true);
+    try {
+      if (otpChannel === 'whatsapp') {
+        await api.auth.sendWhatsAppOtp(rawPhone);
+      } else {
+        await api.auth.sendSmsOtp(rawPhone);
+      }
+    } catch (_) {
+      // proceed anyway
+    } finally {
+      setLoading(false);
+      setStep('otp');
+      setOtp('');
+      startResendTimer();
+    }
+  };
 
   const handleContinueAsGuest = () => {
     if (onLoginSuccess) {
@@ -311,6 +336,21 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
     if (isAdmin) {
       if (!adminPwd) { setError('Enter your security password.'); return; }
       if (adminPwd !== 'Cleanz24@1212') { setError('Incorrect security password.'); return; }
+    }
+
+    // If user is trying to sign up, check if account already exists
+    if (authMode === 'signup' && !isAdmin) {
+      setLoading(true);
+      try {
+        const checkRes = await api.auth.checkUser(cleanPhone);
+        if (checkRes?.exists) {
+          setLoading(false);
+          setAlreadyCustomer(checkRes.user || { phone: cleanPhone });
+          return;
+        }
+      } catch (err) {
+        console.warn('Could not pre-check user existence:', err);
+      }
     }
 
     // If user is trying to log in, verify that the account already exists before sending OTP
@@ -454,6 +494,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
     setName('');
     setAdminPwd('');
     setOtpChannel('whatsapp');
+    setAlreadyCustomer(null);
   };
 
   return (
@@ -531,7 +572,80 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
               {/* Error */}
               {error && <div style={S.errorBox}>{error}</div>}
 
-              <form onSubmit={handleSendOtp} autoComplete="on">
+              {/* Already Registered Customer Card */}
+              {alreadyCustomer ? (
+                <div style={{
+                  padding: '20px 16px',
+                  borderRadius: '16px',
+                  background: '#F0FDF4',
+                  border: '1.5px solid #BBF7D0',
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  margin: '10px 0 16px'
+                }}>
+                  <div style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '50%',
+                    background: '#DCFCE7',
+                    border: '2px solid #16A34A',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '12px',
+                    flexShrink: 0
+                  }}>
+                    <UserCheck size={28} color="#16A34A" />
+                  </div>
+                  <div style={{
+                    fontSize: '11px',
+                    fontWeight: '800',
+                    color: '#16A34A',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.6px',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    background: '#DCFCE7',
+                    marginBottom: '6px'
+                  }}>
+                    Account Found
+                  </div>
+                  <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#111827', margin: '0 0 6px' }}>
+                    Already a Customer! 🎉
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#4B5563', lineHeight: 1.45, margin: '0 0 16px' }}>
+                    {alreadyCustomer.name ? <strong>{alreadyCustomer.name}, </strong> : ''}
+                    mobile number <strong style={{ color: '#16A34A' }}>+91 {(alreadyCustomer.phone || cleanPhone).slice(-10)}</strong> is already registered.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleProceedToLogin}
+                    disabled={loading}
+                    style={{
+                      ...S.submitBtn,
+                      background: 'linear-gradient(135deg, #16A34A, #15803D)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      marginBottom: '10px'
+                    }}
+                  >
+                    {loading ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+                    {loading ? 'Sending OTP...' : 'Proceed to Log In →'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAlreadyCustomer(null); setPhone(''); }}
+                    style={{ background: 'none', border: 'none', color: '#6B7280', fontSize: '12.5px', fontWeight: '600', cursor: 'pointer', padding: '4px' }}
+                  >
+                    ← Use a different phone number
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSendOtp} autoComplete="on">
                 {/* Name */}
                 {authMode === 'signup' ? (
                   <div
@@ -687,9 +801,11 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
                       : <><SmsIcon /> Send SMS OTP <ArrowRight size={16} /></>}
                 </button>
               </form>
+            )}
 
-              {/* Switch mode link */}
-              {authMode === 'signup' ? (
+            {/* Switch mode link */}
+            {!alreadyCustomer && (
+              authMode === 'signup' ? (
                 <button className="auth-switch" style={S.switchLink} onClick={() => switchMode('login')}>
                   Already have an account? Log In →
                 </button>
@@ -697,13 +813,16 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
                 <button className="auth-switch" style={S.switchLink} onClick={() => switchMode('signup')}>
                   New here? Create account →
                 </button>
-              )}
+              )
+            )}
 
-              {/* Guest */}
+            {/* Guest */}
+            {!alreadyCustomer && (
               <button className="auth-guest" style={S.guestBtn} onClick={handleContinueAsGuest}>
                 Skip & browse as Guest →
               </button>
-            </>
+            )}
+          </>
           )}
 
           {/* ── OTP STEP ─────────────────────────────────────── */}
