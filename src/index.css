@@ -90,6 +90,26 @@ body.light-mode {
   -webkit-tap-highlight-color: transparent;
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+
+  /* Prevent text selection on hold — makes app feel native, not like a website */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  /* Prevent callout (iOS long-press menu) and drag behaviour */
+  -webkit-touch-callout: none;
+}
+
+/* Re-enable text selection only where the user needs to type or copy */
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
 }
 
 /* Hide scrollbars completely across WebKit browsers */

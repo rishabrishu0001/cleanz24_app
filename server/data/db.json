@@ -1,46 +1,6 @@
 {
   "users": [
     {
-      "id": "usr_rishab",
-      "name": "Rishab Singh",
-      "phone": "+91 9310590680",
-      "email": "rishabnegi333@gmail.com",
-      "role": "customer",
-      "walletBalance": 2450,
-      "addresses": [
-        {
-          "id": "addr_work",
-          "title": "Work",
-          "badge": "Frequently used",
-          "address": "2735, 27th floor super astilis, Sector 94, Noida",
-          "phone": "9310590680",
-          "lat": 28.5445,
-          "lng": 77.3292,
-          "type": "work"
-        },
-        {
-          "id": "addr_home",
-          "title": "Home",
-          "badge": "Frequently used",
-          "address": "Gali no. 12 baba surdas, Sector 41, Noida",
-          "phone": "9138004800",
-          "lat": 28.5638,
-          "lng": 77.3627,
-          "type": "home"
-        }
-      ],
-      "createdAt": "2026-09-03T06:56:55.100Z"
-    },
-    {
-      "id": "usr_admin",
-      "name": "Cleanz24 Master Admin",
-      "phone": "+91 9999999999",
-      "email": "admin@cleanz24.com",
-      "role": "admin",
-      "walletBalance": 0,
-      "createdAt": "2026-09-03T06:56:55.114Z"
-    },
-    {
       "id": "usr_1788428488266",
       "name": "Aman Sharma",
       "phone": "+91 9876543210",

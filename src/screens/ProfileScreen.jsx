@@ -1213,7 +1213,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
                 <h3 style={{ fontSize: '17px', margin: 0 }}>{profile.name}</h3>
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{profile.phone}</div>
+              <div style={{ fontSize: '11px', color: 'var(--primary-green)', fontWeight: '600', letterSpacing: '0.02em' }}>Cleanz24 Premium Laundry &amp; Dry Cleaning</div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{profile.email}</div>
             </div>
             <button
@@ -1978,7 +1978,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               Log Out?
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 20px 0', lineHeight: 1.5 }}>
-              Are you sure you want to log out from <strong>{profile.phone}</strong>? You can log back in anytime with OTP.
+              Are you sure you want to log out from <strong>Cleanz24 Premium Laundry &amp; Dry Cleaning</strong>? You can log back in anytime with OTP.
             </p>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
