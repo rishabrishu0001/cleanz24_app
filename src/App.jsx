@@ -15,7 +15,7 @@ import OnboardingFlow from './components/OnboardingFlow.jsx';
 import LocationPermissionScreen from './components/LocationPermissionScreen.jsx';
 import api from './services/api.js';
 import { findNearestStore, getStudioKeyForStore } from './services/storeCatalogs.js';
-import { Smartphone, Monitor, ShieldCheck, X, Sun, Moon } from 'lucide-react';
+import { Smartphone, Monitor, ShieldCheck, X, Sun, Moon, Bell, CheckCheck, Trash2 } from 'lucide-react';
 
 export default function App() {
   // Onboarding — disabled by default to avoid intrusive green screen
@@ -250,10 +250,88 @@ export default function App() {
   const [showSupportChat, setShowSupportChat] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const notificationsList = [
-    { id: 1, title: 'Valet Dispatched 🚗', text: 'David Santos is en route to pick up your laundry bag.', time: '10m ago' },
-    { id: 2, title: '20% OFF Promo Applied 🎉', text: 'Promo code CLEANZ20 saved you Rs. 120 on your last order.', time: '2h ago' }
+  const DEFAULT_NOTIFICATIONS = [
+    {
+      id: 1,
+      title: 'Valet Assigned for Doorstep Pickup 🛵',
+      text: 'Ramesh Kumar (Cleanz Valet #14) is en route to collect your garments from Sector 94, Noida.',
+      time: '5m ago',
+      unread: true,
+      badge: 'Pickup',
+      badgeColor: '#10B981',
+      actionTab: 'orders',
+      actionText: 'Track Valet →'
+    },
+    {
+      id: 2,
+      title: '🎉 Grand Opening: Cyber Hub Studio',
+      text: 'New studio launching Oct 25! Enjoy Flat 20% OFF on your first walk-in order + Free Shoe Spa.',
+      time: '25m ago',
+      unread: true,
+      badge: 'New Store',
+      badgeColor: '#F59E0B',
+      actionTab: 'stores',
+      actionText: 'View Studio →'
+    },
+    {
+      id: 3,
+      title: 'Flat 20% OFF Promo Applied 🎁',
+      text: 'Promo code CLEANZ20 applied successfully! Saved ₹120 on your dry cleaning order.',
+      time: '2h ago',
+      unread: false,
+      badge: 'Offer',
+      badgeColor: '#EC4899',
+      actionTab: 'services',
+      actionText: 'Book Service →'
+    },
+    {
+      id: 4,
+      title: 'Steam Press & QC Passed 👔',
+      text: 'Your garments have cleared Italian 3-stage steam pressing and fabric sanitization checks.',
+      time: 'Yesterday',
+      unread: false,
+      badge: 'QC Passed',
+      badgeColor: '#3B82F6',
+      actionTab: 'orders',
+      actionText: 'View Order →'
+    },
+    {
+      id: 5,
+      title: '₹150 Wallet Bonus Credited 💰',
+      text: 'Welcome cash bonus credited to your Cleanz24 Wallet. Use it for your next booking.',
+      time: '2 days ago',
+      unread: false,
+      badge: 'Cashback',
+      badgeColor: '#8B5CF6',
+      actionTab: 'wallet',
+      actionText: 'Open Wallet →'
+    }
   ];
+
+  const [notifications, setNotifications] = useState(DEFAULT_NOTIFICATIONS);
+
+  const unreadNotificationsCount = notifications.filter(n => n.unread).length;
+
+  const handleMarkAllNotificationsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+  };
+
+  const handleClearAllNotifications = () => {
+    setNotifications([]);
+  };
+
+  const handleDismissNotification = (id, e) => {
+    if (e) e.stopPropagation();
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const handleNotificationClick = (n) => {
+    setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, unread: false } : item));
+    if (n.actionTab) {
+      setActiveTab(n.actionTab);
+    }
+    setShowNotifications(false);
+  };
 
   // Sync Dark/Light theme class
   useEffect(() => {
@@ -473,7 +551,7 @@ export default function App() {
               location={userLocation}
               darkMode={darkMode}
               setDarkMode={setDarkMode}
-              activeNotificationsCount={notificationsList.length}
+              activeNotificationsCount={unreadNotificationsCount}
               onOpenNotifications={() => setShowNotifications(!showNotifications)}
               onOpenLocationPicker={() => setShowLocationPicker(true)}
               onOpenAuthModal={() => {
@@ -575,35 +653,238 @@ export default function App() {
 
         {/* Notifications Drawer Overlay */}
         {showNotifications && (
-          <div style={{
-            position: 'absolute',
-            top: '70px',
-            right: '18px',
-            width: '280px',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-active)',
-            borderRadius: '16px',
-            padding: '14px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.6)',
-            zIndex: 1500
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div style={{ fontSize: '13px', fontWeight: '700' }}>Notifications</div>
-              <button className="btn-icon" onClick={() => setShowNotifications(false)} style={{ width: '24px', height: '24px' }}>
-                <X size={14} />
-              </button>
-            </div>
+          <>
+            {/* Backdrop click-to-close */}
+            <div 
+              id="notif-backdrop"
+              onClick={() => setShowNotifications(false)}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 1490,
+                background: 'rgba(0, 0, 0, 0.25)',
+                backdropFilter: 'blur(2px)'
+              }}
+            />
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {notificationsList.map(n => (
-                <div key={n.id} style={{ padding: '8px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '12px' }}>
-                  <div style={{ fontWeight: '700', color: 'var(--primary-green)' }}>{n.title}</div>
-                  <div style={{ color: 'var(--text-muted)', marginTop: '2px' }}>{n.text}</div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-subtle)', marginTop: '4px' }}>{n.time}</div>
+            <div 
+              id="notif-popup"
+              className="animate-fade-in"
+              style={{
+                position: 'absolute',
+                top: '68px',
+                right: '12px',
+                width: '340px',
+                maxWidth: 'calc(100% - 24px)',
+                background: darkMode ? '#0F172A' : '#FFFFFF',
+                border: darkMode ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid #E2E8F0',
+                borderRadius: '20px',
+                padding: '16px',
+                boxShadow: darkMode ? '0 15px 40px rgba(0,0,0,0.85)' : '0 15px 35px rgba(15, 23, 42, 0.16)',
+                zIndex: 1500,
+                maxHeight: '460px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}
+            >
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: darkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid #F1F5F9', paddingBottom: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '800', color: darkMode ? '#F8FAFC' : '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Bell size={16} color="var(--primary-green)" />
+                    Notifications
+                  </div>
+                  {unreadNotificationsCount > 0 && (
+                    <span style={{
+                      background: 'rgba(39, 162, 67, 0.15)',
+                      color: 'var(--primary-green)',
+                      fontSize: '10.5px',
+                      fontWeight: '800',
+                      padding: '2px 8px',
+                      borderRadius: '12px'
+                    }}>
+                      {unreadNotificationsCount} New
+                    </span>
+                  )}
                 </div>
-              ))}
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {unreadNotificationsCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleMarkAllNotificationsRead}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--primary-green)',
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        padding: '3px 6px',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px'
+                      }}
+                      title="Mark all as read"
+                    >
+                      <CheckCheck size={13} /> Read all
+                    </button>
+                  )}
+                  {notifications.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearAllNotifications}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: darkMode ? '#94A3B8' : '#64748B',
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        padding: '3px 6px',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px'
+                      }}
+                      title="Clear all notifications"
+                    >
+                      <Trash2 size={12} /> Clear
+                    </button>
+                  )}
+                  <button 
+                    className="btn-icon" 
+                    onClick={() => setShowNotifications(false)} 
+                    style={{ width: '26px', height: '26px', color: darkMode ? '#94A3B8' : '#64748B' }}
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Items List */}
+              <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '2px', maxHeight: '360px' }}>
+                {notifications.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '28px 12px', color: darkMode ? '#94A3B8' : '#64748B' }}>
+                    <div style={{ fontSize: '32px', marginBottom: '8px' }}>✨</div>
+                    <div style={{ fontSize: '13px', fontWeight: '700', color: darkMode ? '#F1F5F9' : '#1E293B', marginBottom: '4px' }}>All Caught Up!</div>
+                    <div style={{ fontSize: '11.5px', marginBottom: '14px' }}>You have no new notifications right now.</div>
+                    <button
+                      type="button"
+                      onClick={() => setNotifications(DEFAULT_NOTIFICATIONS)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        background: darkMode ? 'rgba(255,255,255,0.06)' : '#F1F5F9',
+                        border: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid #E2E8F0',
+                        color: darkMode ? '#F1F5F9' : '#334155',
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Reset Demo Notifications
+                    </button>
+                  </div>
+                ) : (
+                  notifications.map(n => (
+                    <div 
+                      key={n.id}
+                      onClick={() => handleNotificationClick(n)}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: '12px',
+                        background: n.unread 
+                          ? (darkMode ? 'rgba(39, 162, 67, 0.12)' : '#F0FDF4') 
+                          : (darkMode ? 'rgba(255,255,255,0.03)' : '#F8FAFC'),
+                        border: n.unread 
+                          ? '1px solid rgba(39, 162, 67, 0.3)' 
+                          : (darkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid #E2E8F0'),
+                        borderLeft: n.unread ? '3.5px solid var(--primary-green)' : undefined,
+                        cursor: 'pointer',
+                        transition: 'transform 0.1s ease',
+                        position: 'relative'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px', marginBottom: '3px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <span style={{
+                            fontSize: '9.5px',
+                            fontWeight: '800',
+                            padding: '1.5px 6px',
+                            borderRadius: '6px',
+                            background: `${n.badgeColor || '#10B981'}22`,
+                            color: n.badgeColor || '#10B981',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.4px'
+                          }}>
+                            {n.badge}
+                          </span>
+                          <span style={{
+                            fontSize: '12.5px',
+                            fontWeight: '700',
+                            color: darkMode ? '#F8FAFC' : '#0F172A',
+                            lineHeight: 1.3
+                          }}>
+                            {n.title}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={(e) => handleDismissNotification(n.id, e)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: darkMode ? '#64748B' : '#94A3B8',
+                            cursor: 'pointer',
+                            padding: '2px',
+                            borderRadius: '4px',
+                            flexShrink: 0
+                          }}
+                          title="Dismiss notification"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+
+                      <div style={{
+                        fontSize: '11.5px',
+                        color: darkMode ? '#CBD5E1' : '#475569',
+                        lineHeight: 1.4,
+                        marginBottom: '6px'
+                      }}>
+                        {n.text}
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '10px', color: darkMode ? '#64748B' : '#94A3B8', fontWeight: '600' }}>
+                          {n.time}
+                        </span>
+                        {n.actionText && (
+                          <span style={{
+                            fontSize: '10.5px',
+                            fontWeight: '800',
+                            color: 'var(--primary-green)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '2px'
+                          }}>
+                            {n.actionText}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
+          </>
         )}
 
         {/* Location Search & Selection Modal */}

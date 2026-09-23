@@ -8,6 +8,34 @@ const router = express.Router();
 // In-memory OTP storage with 5-min TTL
 const otpStore = new Map();
 
+// ── App Store & Google Play Reviewer Test Accounts ──────────────────────────
+const REVIEWER_TEST_PHONES = ['9999999999', '9876543210', '8888888888', '1234567890', '9123456789'];
+function isReviewerPhone(cleanPhone) {
+  return REVIEWER_TEST_PHONES.includes(cleanPhone);
+}
+
+function getDemoReviewerUser(cleanPhone) {
+  return {
+    id: 'usr_reviewer_' + cleanPhone,
+    name: 'App Store Reviewer',
+    phone: `+91 ${cleanPhone}`,
+    email: 'reviewer@cleanz24.com',
+    role: 'customer',
+    walletBalance: 250,
+    addresses: [
+      {
+        id: 'addr_reviewer_1',
+        title: 'Home',
+        badge: 'Default',
+        address: 'Tower 4, Sector 41, Noida, Uttar Pradesh 201303',
+        phone: `+91 ${cleanPhone}`,
+        type: 'home'
+      }
+    ],
+    isLoggedIn: true
+  };
+}
+
 // POST /api/auth/quick-login (Instant 1-Click Login / Signup without OTP blocking)
 router.post("/quick-login", async (req, res) => {
   const { phone, name, email, address } = req.body;
@@ -16,6 +44,11 @@ router.post("/quick-login", async (req, res) => {
   const cleanPhone = phone.replace(/\D/g, "").slice(-10);
   if (cleanPhone.length < 10) {
     return res.status(400).json({ error: "Please enter a valid 10-digit mobile number" });
+  }
+
+  // App Store / Play Store Reviewer Demo Bypass
+  if (isReviewerPhone(cleanPhone)) {
+    return res.json({ success: true, user: getDemoReviewerUser(cleanPhone), message: "Logged in successfully as Reviewer" });
   }
 
   const finalName = name && name.trim() && name.trim() !== "Customer" ? name.trim() : "Customer";
@@ -78,6 +111,11 @@ router.post("/check-user", async (req, res) => {
 
   const cleanPhone = phone.replace(/\D/g, "").slice(-10);
 
+  // App Store / Google Play Reviewer Demo Bypass
+  if (isReviewerPhone(cleanPhone)) {
+    return res.json({ exists: true, user: getDemoReviewerUser(cleanPhone) });
+  }
+
   try {
     if (isMongoConnected) {
       const user = await User.findOne({ phone: { $regex: cleanPhone } });
@@ -103,6 +141,19 @@ router.post("/send-whatsapp-otp", async (req, res) => {
   const cleanPhone = phone.replace(/\D/g, "").slice(-10);
   if (cleanPhone.length < 10) {
     return res.status(400).json({ error: "Please enter a valid 10-digit mobile number" });
+  }
+
+  // App Store / Google Play Reviewer Demo Bypass
+  if (isReviewerPhone(cleanPhone)) {
+    otpStore.set(cleanPhone, { otp: '123456', expiresAt: Date.now() + 60 * 60 * 1000 });
+    return res.json({
+      success: true,
+      channel: "whatsapp",
+      message: "Reviewer Test Account: Verification code is 123456",
+      phone: `+91 ${cleanPhone}`,
+      expiresInSeconds: 3600,
+      demoOtp: "123456"
+    });
   }
 
   // Generate 6-digit OTP
@@ -170,6 +221,16 @@ router.post("/verify-whatsapp-otp", async (req, res) => {
 
   // Clear OTP
   otpStore.delete(cleanPhone);
+
+  // App Store / Google Play Reviewer Demo Bypass
+  if (isReviewerPhone(cleanPhone)) {
+    return res.json({
+      success: true,
+      user: getDemoReviewerUser(cleanPhone),
+      isNewUser: false,
+      message: "Logged in successfully as Reviewer"
+    });
+  }
 
   try {
     if (isMongoConnected) {
@@ -241,6 +302,19 @@ router.post("/send-sms-otp", async (req, res) => {
     return res.status(400).json({ error: "Please enter a valid 10-digit mobile number" });
   }
 
+  // App Store / Google Play Reviewer Demo Bypass
+  if (isReviewerPhone(cleanPhone)) {
+    otpStore.set(cleanPhone, { otp: '123456', expiresAt: Date.now() + 60 * 60 * 1000 });
+    return res.json({
+      success: true,
+      channel: "sms",
+      message: "Reviewer Test Account: Verification code is 123456",
+      phone: `+91 ${cleanPhone}`,
+      expiresInSeconds: 3600,
+      demoOtp: "123456"
+    });
+  }
+
   // Generate 6-digit OTP
   const otp = String(Math.floor(100000 + Math.random() * 900000));
   const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
@@ -281,6 +355,16 @@ router.post("/verify-sms-otp", async (req, res) => {
 
   // Clear OTP
   otpStore.delete(cleanPhone);
+
+  // App Store / Google Play Reviewer Demo Bypass
+  if (isReviewerPhone(cleanPhone)) {
+    return res.json({
+      success: true,
+      user: getDemoReviewerUser(cleanPhone),
+      isNewUser: false,
+      message: "Logged in successfully as Reviewer"
+    });
+  }
 
   try {
     if (isMongoConnected) {
@@ -609,6 +693,75 @@ router.put("/profile", async (req, res) => {
     res.status(404).json({ error: "User not found" });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// POST & DELETE /api/auth/delete-account (Apple App Store Guideline 5.1.1 & Google Play Account Deletion Policy)
+router.all("/delete-account", async (req, res) => {
+  const userId = req.body?.userId || req.query?.userId;
+  const phone = req.body?.phone || req.query?.phone;
+
+  if (!userId && !phone) {
+    return res.status(400).json({ error: "User ID or phone number is required to delete account." });
+  }
+
+  const cleanPhone = phone ? phone.replace(/\D/g, "").slice(-10) : "";
+
+  try {
+    let deleted = false;
+    let deletedName = "";
+
+    if (isMongoConnected) {
+      if (userId) {
+        const del = await User.findOneAndDelete({ 
+          $or: [
+            { id: userId }, 
+            { _id: userId.match(/^[0-9a-fA-F]{24}$/) ? userId : null }
+          ] 
+        });
+        if (del) {
+          deleted = true;
+          deletedName = del.name;
+        }
+      }
+      if (!deleted && cleanPhone) {
+        const del = await User.findOneAndDelete({ phone: { $regex: cleanPhone } });
+        if (del) {
+          deleted = true;
+          deletedName = del.name;
+        }
+      }
+    }
+
+    // Always ensure Fallback DB is cleaned up too
+    const db = getFallbackDb();
+    const beforeLen = db.users.length;
+    const matchUser = db.users.find(u => 
+      (userId && (u.id === userId || u._id === userId)) ||
+      (cleanPhone && u.phone && u.phone.includes(cleanPhone))
+    );
+    if (matchUser) deletedName = deletedName || matchUser.name;
+
+    db.users = db.users.filter(u => {
+      const matchId = userId && (u.id === userId || u._id === userId);
+      const matchPhone = cleanPhone && u.phone && u.phone.includes(cleanPhone);
+      return !matchId && !matchPhone;
+    });
+
+    if (db.users.length < beforeLen) {
+      deleted = true;
+      saveFallbackDb(db);
+    }
+
+    return res.json({
+      success: true,
+      deletedPhone: cleanPhone,
+      deletedName,
+      message: "Your Cleanz24 account and associated data have been permanently deleted in accordance with App Store & Google Play privacy policies."
+    });
+  } catch (err) {
+    console.error("Account deletion error:", err);
+    res.status(500).json({ error: "Failed to delete account. Please try again or contact support." });
   }
 });
 

@@ -21,6 +21,8 @@ const SmsIcon = () => (
   </svg>
 );
 
+const REVIEWER_TEST_PHONES = ['9999999999', '9876543210', '8888888888', '1234567890', '9123456789'];
+
 /* ─── Inline styles ─────────────────────────────────────────────────────────── */
 const S = {
   overlay: {
@@ -338,8 +340,10 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
       if (adminPwd !== 'Cleanz24@1212') { setError('Incorrect security password.'); return; }
     }
 
+    const isReviewer = REVIEWER_TEST_PHONES.includes(cleanPhone);
+
     // If user is trying to sign up, check if account already exists
-    if (authMode === 'signup' && !isAdmin) {
+    if (!isReviewer && authMode === 'signup' && !isAdmin) {
       setLoading(true);
       try {
         const checkRes = await api.auth.checkUser(cleanPhone);
@@ -354,7 +358,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
     }
 
     // If user is trying to log in, verify that the account already exists before sending OTP
-    if (authMode === 'login' && !isAdmin) {
+    if (!isReviewer && authMode === 'login' && !isAdmin) {
       setLoading(true);
       try {
         const checkRes = await api.auth.checkUser(cleanPhone);
@@ -389,11 +393,35 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
   const handleVerifyOtp = async (e) => {
     if (e) e.preventDefault();
     setError('');
-    if (otp.length < 6) { setError('Please enter the 6-digit code.'); return; }
+    if (otp.length < 4) { setError('Please enter the verification code.'); return; }
 
     setLoading(true);
     const enteredName = name.trim();
     const finalEmail = `${cleanPhone}@cleanz24.com`;
+
+    const isReviewer = REVIEWER_TEST_PHONES.includes(cleanPhone);
+    if (isReviewer && ['123456', '1234', '941200'].includes(otp.trim())) {
+      const demoUser = {
+        id: 'usr_reviewer_' + cleanPhone,
+        name: enteredName || 'App Store Reviewer',
+        phone: `+91 ${cleanPhone}`,
+        email: finalEmail,
+        isLoggedIn: true,
+        walletBalance: 250,
+        addresses: [{
+          id: 'addr_rev_1',
+          title: 'Home',
+          badge: 'Default',
+          address: address || 'Tower 4, Sector 41, Noida',
+          phone: `+91 ${cleanPhone}`,
+          type: 'home'
+        }]
+      };
+      if (onLoginSuccess) onLoginSuccess(demoUser);
+      setLoading(false);
+      onClose();
+      return;
+    }
 
     // Admin stealth bypass
     if (isAdmin) {
@@ -800,6 +828,38 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
                       ? <><WhatsAppIcon /> Send WhatsApp OTP <ArrowRight size={16} /></>
                       : <><SmsIcon /> Send SMS OTP <ArrowRight size={16} /></>}
                 </button>
+
+                {/* Reviewer Demo Account Chip */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '7px 12px',
+                  borderRadius: '10px',
+                  background: 'rgba(59, 130, 246, 0.08)',
+                  border: '1px dashed rgba(59, 130, 246, 0.3)',
+                  marginTop: '10px'
+                }}>
+                  <span style={{ fontSize: '11px', color: '#2563EB', fontWeight: '600' }}>
+                    🧪 Reviewer Demo: 9999999999 • OTP: 123456
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => { setPhone('9999999999'); setError(''); }}
+                    style={{
+                      fontSize: '11px',
+                      color: '#FFFFFF',
+                      background: '#2563EB',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '3px 8px',
+                      cursor: 'pointer',
+                      fontWeight: '700'
+                    }}
+                  >
+                    Use Demo
+                  </button>
+                </div>
               </form>
             )}
 
@@ -880,13 +940,39 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
                   )}
               </div>
 
+              {/* Quick autofill for reviewer demo */}
+              {(cleanPhone === '9999999999' || cleanPhone === '9876543210' || cleanPhone === '8888888888' || cleanPhone === '1234567890') && (
+                <button
+                  type="button"
+                  onClick={() => { setOtp('123456'); setError(''); }}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    background: 'rgba(59, 130, 246, 0.08)',
+                    border: '1px dashed rgba(59, 130, 246, 0.35)',
+                    color: '#2563EB',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    marginBottom: '14px'
+                  }}
+                >
+                  🧪 Tap to Autofill Reviewer OTP (123456)
+                </button>
+              )}
+
               {/* Verify CTA */}
               <form onSubmit={handleVerifyOtp}>
                 <button
                   type="submit"
                   className="auth-btn-primary"
                   style={S.btnPrimary}
-                  disabled={loading || otp.length < 6}
+                  disabled={loading || otp.length < 4}
                 >
                   {loading
                     ? <><Loader2 size={17} className="animate-spin" /> Verifying...</>

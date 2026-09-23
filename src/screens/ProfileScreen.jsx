@@ -96,6 +96,9 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteSuccessMsg, setDeleteSuccessMsg] = useState('');
 
   // Stealth Admin State
   const [adminSecretPassword, setAdminSecretPassword] = useState('');
@@ -208,6 +211,28 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
     } else {
       localStorage.removeItem('cleanz24_user');
       if (setCurrentUser) setCurrentUser({ isLoggedIn: false, walletBalance: 0 });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    const userId = currentUser?.id;
+    const userPhone = currentUser?.phone;
+
+    try {
+      await api.auth.deleteAccount(userId, userPhone);
+      // Real-time cross-component broadcast
+      window.dispatchEvent(new CustomEvent('cleanz24_user_deleted', {
+        detail: { id: userId, phone: userPhone }
+      }));
+      setShowDeleteConfirm(false);
+      handleLogout();
+      setDeleteSuccessMsg('Your Cleanz24 account and data have been permanently deleted in accordance with App Store & Google Play privacy policies.');
+      setTimeout(() => setDeleteSuccessMsg(''), 8000);
+    } catch (err) {
+      alert(err.message || 'Failed to delete account. Please try again.');
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -389,8 +414,8 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
 
   const handleVerifyOtp = async (e) => {
     if (e) e.preventDefault();
-    if (!otpInput || otpInput.length < 6) {
-      setOtpError('Please enter the 6-digit code received on your phone.');
+    if (!otpInput || otpInput.length < 4) {
+      setOtpError('Please enter the verification code received on your phone.');
       return;
     }
 
@@ -545,6 +570,30 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
         width: '100%',
         boxSizing: 'border-box'
       }}>
+
+        {/* Account Deletion Success Notification */}
+        {deleteSuccessMsg && (
+          <div className="animate-fade-in" style={{
+            width: '100%',
+            maxWidth: '340px',
+            marginBottom: '16px',
+            padding: '12px 14px',
+            borderRadius: '12px',
+            background: 'rgba(34, 197, 94, 0.12)',
+            border: '1px solid rgba(34, 197, 94, 0.35)',
+            color: '#15803D',
+            fontSize: '12px',
+            fontWeight: '600',
+            lineHeight: 1.4,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            textAlign: 'left'
+          }}>
+            <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
+            <span>{deleteSuccessMsg}</span>
+          </div>
+        )}
 
         {/* Back to App navigation if user entered as guest */}
         {currentUser?.isGuest && (
@@ -861,6 +910,40 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               {isSendingOtp ? 'Sending OTP Code...' : 'Get Verification OTP →'}
             </button>
 
+            {/* App Store & Google Play Reviewer Demo Chip */}
+            <div style={{
+              width: '100%',
+              padding: '8px 12px',
+              borderRadius: '10px',
+              background: 'rgba(59, 130, 246, 0.08)',
+              border: '1px dashed rgba(59, 130, 246, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '8px',
+              marginTop: '2px'
+            }}>
+              <span style={{ fontSize: '11px', color: '#2563EB', fontWeight: '600' }}>
+                🧪 Reviewer Demo: 9999999999 (OTP: 123456)
+              </span>
+              <button
+                type="button"
+                onClick={() => { setPhone('9999999999'); setOtpError(''); }}
+                style={{
+                  fontSize: '11px',
+                  color: '#FFFFFF',
+                  background: '#2563EB',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '3px 8px',
+                  cursor: 'pointer',
+                  fontWeight: '700'
+                }}
+              >
+                Use Demo
+              </button>
+            </div>
+
 
 
             {/* Microcopy: Legal & Terms */}
@@ -997,11 +1080,36 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
 
 
 
+            {/* Quick Demo OTP Fill for Reviewers */}
+            {(phone.includes('9999999999') || phone.includes('9876543210') || phone.includes('8888888888') || phone.includes('1234567890')) && (
+              <button
+                type="button"
+                onClick={() => { setOtpInput('123456'); setOtpError(''); }}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: '10px',
+                  background: 'rgba(59, 130, 246, 0.08)',
+                  border: '1px dashed rgba(59, 130, 246, 0.35)',
+                  color: '#2563EB',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+              >
+                🧪 Tap to Autofill Reviewer Code (123456)
+              </button>
+            )}
+
             {/* Verify CTA */}
             <button
               type="submit"
               className="btn-primary"
-              disabled={isVerifying || otpInput.length < 6}
+              disabled={isVerifying || otpInput.length < 4}
               style={{
                 width: '100%',
                 padding: '14px',
@@ -1011,8 +1119,8 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                opacity: otpInput.length < 6 ? 0.6 : 1,
-                cursor: otpInput.length < 6 ? 'not-allowed' : 'pointer'
+                opacity: otpInput.length < 4 ? 0.6 : 1,
+                cursor: otpInput.length < 4 ? 'not-allowed' : 'pointer'
               }}
             >
               {isVerifying ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
@@ -1421,11 +1529,36 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
           gap: '8px',
           cursor: 'pointer',
           marginTop: '4px',
-          marginBottom: '20px',
+          marginBottom: '10px',
           transition: 'all 0.2s ease'
         }}
       >
         <LogOut size={16} /> Log Out from Cleanz24
+      </button>
+
+      {/* ── DELETE ACCOUNT BUTTON (Apple Guideline 5.1.1 & Google Play Policy) ── */}
+      <button
+        onClick={() => setShowDeleteConfirm(true)}
+        className="interactive"
+        style={{
+          width: '100%',
+          padding: '11px',
+          borderRadius: '14px',
+          border: '1px dashed rgba(239, 68, 68, 0.35)',
+          background: 'rgba(239, 68, 68, 0.04)',
+          color: '#EF4444',
+          fontSize: '12.5px',
+          fontWeight: '600',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '6px',
+          cursor: 'pointer',
+          marginBottom: '24px',
+          transition: 'all 0.2s ease'
+        }}
+      >
+        <Trash2 size={13} /> Delete Account &amp; Personal Data
       </button>
 
       {/* ── 1. NOTIFICATION SETTINGS MODAL ───────────────────────────────────── */}
@@ -2003,6 +2136,81 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
                 }}
               >
                 Yes, Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── DELETE ACCOUNT CONFIRMATION MODAL (Apple Guideline 5.1.1 & Google Play) ── */}
+      {showDeleteConfirm && (
+        <div className="modal-overlay" style={{ zIndex: 3000 }}>
+          <div className="bottom-sheet animate-fade-in" style={{ padding: '24px 20px', maxWidth: '440px', margin: '0 auto', textAlign: 'center' }}>
+            <div className="sheet-handle" />
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '28px',
+              background: 'rgba(239, 68, 68, 0.12)',
+              color: '#EF4444',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 14px auto'
+            }}>
+              <ShieldAlert size={30} />
+            </div>
+            <h3 style={{ fontSize: '18px', fontWeight: '800', margin: '0 0 6px 0', color: 'var(--text-main)' }}>
+              Delete Cleanz24 Account?
+            </h3>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+              This action is permanent and irreversible. In accordance with Apple &amp; Google privacy guidelines, all your personal data will be purged:
+            </p>
+            <div style={{
+              textAlign: 'left',
+              fontSize: '11.5px',
+              color: '#991B1B',
+              background: '#FEF2F2',
+              border: '1px solid #FECACA',
+              borderRadius: '12px',
+              padding: '10px 14px',
+              marginBottom: '20px',
+              lineHeight: 1.5
+            }}>
+              • Your profile, phone number, and authentication tokens will be deleted.<br/>
+              • All saved addresses and personal preferences will be erased.<br/>
+              • Any remaining wallet balance will be permanently forfeited.
+            </div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                disabled={isDeletingAccount}
+                onClick={() => setShowDeleteConfirm(false)}
+                className="btn-secondary"
+                style={{ flex: 1, padding: '12px', fontSize: '13px', borderRadius: '12px' }}
+              >
+                Keep Account
+              </button>
+              <button
+                disabled={isDeletingAccount}
+                onClick={handleDeleteAccount}
+                style={{
+                  flex: 1.3,
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: '#DC2626',
+                  color: '#FFF',
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  cursor: isDeletingAccount ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+              >
+                {isDeletingAccount ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={15} />}
+                {isDeletingAccount ? 'Deleting...' : 'Permanently Delete'}
               </button>
             </div>
           </div>

@@ -40,7 +40,8 @@ export const api = {
     updateProfile: (data) => fetchJSON('/auth/profile', { method: 'PUT', body: JSON.stringify(data) }),
     getAddresses: (userId, phone) => fetchJSON(`/auth/addresses?userId=${encodeURIComponent(userId || '')}&phone=${encodeURIComponent(phone || '')}`),
     saveAddress: (data) => fetchJSON('/auth/addresses', { method: 'POST', body: JSON.stringify(data) }),
-    deleteAddress: (id, userId, phone) => fetchJSON(`/auth/addresses/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId || '')}&phone=${encodeURIComponent(phone || '')}`, { method: 'DELETE' })
+    deleteAddress: (id, userId, phone) => fetchJSON(`/auth/addresses/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId || '')}&phone=${encodeURIComponent(phone || '')}`, { method: 'DELETE' }),
+    deleteAccount: (userId, phone) => fetchJSON('/auth/delete-account', { method: 'POST', body: JSON.stringify({ userId, phone }) })
   },
 
   // ── Orders ──
@@ -94,6 +95,16 @@ export const api = {
   // ── Services Catalog ──
   services: {
     getAll: () => fetchJSON('/services')
+  },
+
+  // ── Grand Openings / Store Launches ──
+  grandOpenings: {
+    getAll: (includeAll = false) => fetchJSON(`/grand-openings${includeAll ? '?all=true' : ''}`),
+    getById: (id) => fetchJSON(`/grand-openings/${encodeURIComponent(id)}`),
+    create: (data) => fetchJSON('/grand-openings', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id, data) => fetchJSON(`/grand-openings/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id) => fetchJSON(`/grand-openings/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+    toggle: (id) => fetchJSON(`/grand-openings/${encodeURIComponent(id)}/toggle`, { method: 'PATCH' })
   }
 };
 

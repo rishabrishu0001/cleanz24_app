@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Sparkles, Clock, Truck, ShieldCheck, ArrowRight, Shirt, 
-  Layers, Package, Zap, MapPin, Phone, MessageCircle, ChevronRight, ChevronDown, Search, Navigation, X, Award, Crown, User
+  Layers, Package, Zap, MapPin, Phone, MessageCircle, ChevronRight, ChevronDown, Search, Navigation, X, Award, Crown, User, Calendar
 } from 'lucide-react';
 import storesData from '../data/stores.json';
 import { findNearestStore } from '../services/storeCatalogs.js';
+import api from '../services/api.js';
 
 // Dynamic rate resolver for each store based on actual catalog / pricing
 function getStoreEstimatorRates(store) {
@@ -196,8 +197,43 @@ export default function HomeScreen({
   onRequestLocation
 }) {
   // Quick Estimator State - Store Driven
-  const [estimatedWeight, setEstimatedWeight] = useState(7); // in kg
+   const [estimatedWeight, setEstimatedWeight] = useState(7); // in kg
   const [selectedEstimatorService, setSelectedEstimatorService] = useState('wash_fold');
+
+  // Grand Opening Announcements (Admin Managed)
+  const [grandOpenings, setGrandOpenings] = useState([]);
+  const [activeOpeningIdx, setActiveOpeningIdx] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    api.grandOpenings.getAll()
+      .then(res => {
+        if (isMounted && res && Array.isArray(res.grandOpenings) && res.grandOpenings.length > 0) {
+          setGrandOpenings(res.grandOpenings);
+        }
+      })
+      .catch(err => {
+        console.log('Using fallback grand opening announcement:', err.message);
+        if (isMounted) {
+          setGrandOpenings([
+            {
+              id: "opening_cybercity",
+              storeName: "Cleanz24 - Cyber Hub Studio",
+              address: "Ground Floor, Building 10, DLF Cyber City, Phase 2, Gurugram",
+              city: "Gurugram",
+              state: "Haryana",
+              openingDate: "October 25, 2026",
+              openingTime: "10:00 AM IST",
+              specialOffer: "Flat 20% OFF for First 100 Walk-in Orders + Free Shoe Spa!",
+              contactPhone: "+91 91380 04800",
+              badgeText: "🎉 GRAND OPENING",
+              isActive: true
+            }
+          ]);
+        }
+      });
+    return () => { isMounted = false; };
+  }, []);
 
   // Compute initial store from userCoords & location or selectedStudio
   const initialNearest = useMemo(() => {
@@ -326,6 +362,166 @@ export default function HomeScreen({
           </div>
         )}
       </div>
+
+      {/* ── Grand Opening of New Store Banner (Top Placement, Luxury Emerald Theme) ── */}
+      {grandOpenings && grandOpenings.length > 0 && (() => {
+        const opening = grandOpenings[activeOpeningIdx % grandOpenings.length] || grandOpenings[0];
+        if (!opening) return null;
+
+        return (
+          <div style={{
+            background: 'linear-gradient(135deg, #064E3B 0%, #065F46 45%, #047857 100%)',
+            borderRadius: '18px',
+            padding: '14px 16px',
+            border: '1px solid rgba(52, 211, 153, 0.4)',
+            boxShadow: '0 8px 24px -4px rgba(4, 120, 87, 0.35), 0 2px 6px rgba(0, 0, 0, 0.1)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            {/* Ambient Festive Glow & Highlight */}
+            <div style={{
+              position: 'absolute',
+              top: '-20px',
+              right: '-20px',
+              width: '120px',
+              height: '120px',
+              background: 'radial-gradient(circle, rgba(253, 224, 71, 0.25) 0%, rgba(52, 211, 153, 0) 70%)',
+              pointerEvents: 'none'
+            }} />
+
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              {/* Top Row: Badge Tag + Multi-Store Dots */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  background: 'linear-gradient(90deg, #F59E0B 0%, #EAB308 100%)',
+                  borderRadius: '20px',
+                  padding: '3px 9px',
+                  fontSize: '10px',
+                  fontWeight: '900',
+                  color: '#0B140D',
+                  letterSpacing: '0.5px',
+                  textTransform: 'uppercase',
+                  boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
+                }}>
+                  <Sparkles size={11} color="#0B140D" />
+                  {opening.badgeText || "🎉 GRAND OPENING"}
+                </div>
+
+                {/* Multiple store launches navigation dots */}
+                {grandOpenings.length > 1 && (
+                  <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                    {grandOpenings.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setActiveOpeningIdx(idx)}
+                        style={{
+                          width: idx === (activeOpeningIdx % grandOpenings.length) ? '16px' : '6px',
+                          height: '6px',
+                          borderRadius: '3px',
+                          background: idx === (activeOpeningIdx % grandOpenings.length) ? '#FDE047' : 'rgba(255,255,255,0.35)',
+                          border: 'none',
+                          padding: 0,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                        title={`Store Announcement ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Store Name */}
+              <div style={{
+                fontSize: '16.5px',
+                fontWeight: '800',
+                color: '#FFFFFF',
+                lineHeight: '1.25',
+                marginBottom: '4px',
+                letterSpacing: '-0.01em'
+              }}>
+                {opening.storeName}
+              </div>
+
+              {/* Address */}
+              <div style={{
+                fontSize: '11.5px',
+                color: '#D1FAE5',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                marginBottom: '8px'
+              }}>
+                <MapPin size={12} color="#34D399" style={{ flexShrink: 0 }} />
+                <span style={{
+                  display: '-webkit-box',
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden'
+                }}>
+                  {opening.address}
+                </span>
+              </div>
+
+              {/* Date, Time & Special Offer Badges */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  padding: '3px 8px',
+                  borderRadius: '8px',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  color: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  <Calendar size={11} color="#6EE7B7" />
+                  <span>{opening.openingDate}</span>
+                </div>
+
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  padding: '3px 8px',
+                  borderRadius: '8px',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  color: '#FDE047',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  <Clock size={11} color="#FDE047" />
+                  <span>{opening.openingTime}</span>
+                </div>
+
+                {opening.specialOffer && (
+                  <div style={{
+                    background: 'rgba(254, 240, 138, 0.16)',
+                    border: '1px solid rgba(253, 224, 71, 0.4)',
+                    padding: '3px 8px',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    fontWeight: '700',
+                    color: '#FEF08A',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    <span>🎁</span>
+                    <span>{opening.specialOffer}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Dynamic Nearest Studio Location Card */}
       <div 

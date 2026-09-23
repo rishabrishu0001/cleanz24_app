@@ -8,6 +8,7 @@ import ordersRoutes from "./routes/orders.js";
 import storesRoutes from "./routes/stores.js";
 import adminRoutes from "./routes/admin.js";
 import walletRoutes from "./routes/wallet.js";
+import grandOpeningsRoutes from "./routes/grandOpenings.js";
 import { connectDB, isMongoConnected } from "./db.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -55,6 +56,7 @@ app.use("/api/orders", ordersRoutes);
 app.use("/api/stores", storesRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/wallet", walletRoutes);
+app.use("/api/grand-openings", grandOpeningsRoutes);
 
 app.use("/api/*", (req, res) => {
   res.status(404).json({ error: "API route not found" });

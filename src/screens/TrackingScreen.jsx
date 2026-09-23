@@ -22,13 +22,13 @@ export default function TrackingScreen({ activeOrder, setOrdersHistory }) {
       { name: 'White Sneakers', qty: 1, status: 'UV Sterilized ✓' }
     ],
     driver: {
-      name: 'David Santos',
-      phone: '+1 (555) 782-9021',
+      name: 'Ramesh Kumar (Cleanz Valet)',
+      phone: '+91 91380 04800',
       rating: '4.9 ⭐ (840 orders)',
       vehicle: 'Cleanz EV Van #14'
     },
     eta: 'Today by 06:30 PM',
-    address: '450 Grand Ave, Apt 12B'
+    address: 'Sector 94, Supernova, Noida, UP'
   };
 
   const [orderState, setOrderState] = useState(activeOrder || defaultDemoOrder);
@@ -219,12 +219,12 @@ export default function TrackingScreen({ activeOrder, setOrdersHistory }) {
             fontSize: '18px',
             boxShadow: '0 0 15px rgba(39, 162, 67, 0.4)'
           }}>
-            DS
+            RK
           </div>
 
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: '14px', fontWeight: '700' }}>
-              {orderState.driver?.name || 'David Santos'}
+              {orderState.driver?.name || 'Ramesh Kumar (Cleanz Valet)'}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
               {orderState.driver?.vehicle || 'Cleanz EV Van #14'} • {orderState.driver?.rating || '4.9 ⭐'}

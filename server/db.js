@@ -1,4 +1,4 @@
-﻿import mongoose from "mongoose";
+import mongoose from "mongoose";
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
@@ -8,6 +8,7 @@ import { Order } from "./models/Order.js";
 import { Store } from "./models/Store.js";
 import { Valet } from "./models/Valet.js";
 import { WalletTransaction } from "./models/WalletTransaction.js";
+import { GrandOpening } from "./models/GrandOpening.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,10 +30,29 @@ function getFallbackDb() {
       try {
         fallbackDb = JSON.parse(fs.readFileSync(DB_JSON_PATH, "utf8"));
       } catch {
-        fallbackDb = { users: [], orders: [], stores: [], valets: [], walletTransactions: [] };
+        fallbackDb = { users: [], orders: [], stores: [], valets: [], walletTransactions: [], grandOpenings: [] };
       }
     } else {
-      fallbackDb = { users: [], orders: [], stores: [], valets: [], walletTransactions: [] };
+      fallbackDb = { users: [], orders: [], stores: [], valets: [], walletTransactions: [], grandOpenings: [] };
+    }
+    if (!fallbackDb.grandOpenings) {
+      fallbackDb.grandOpenings = [
+        {
+          id: "opening_cybercity",
+          storeName: "Cleanz24 - Cyber Hub Studio",
+          address: "Ground Floor, Building 10, DLF Cyber City, Phase 2, Gurugram",
+          city: "Gurugram",
+          state: "Haryana",
+          openingDate: "October 25, 2026",
+          openingTime: "10:00 AM IST",
+          specialOffer: "Flat 20% OFF for First 100 Walk-in Orders + Free Shoe Spa!",
+          contactPhone: "+91 91380 04800",
+          badgeText: "🎉 GRAND OPENING",
+          isActive: true,
+          displayOrder: 1,
+          createdAt: new Date().toISOString()
+        }
+      ];
     }
   }
   return fallbackDb;
@@ -160,7 +180,26 @@ async function seedMongoDb() {
           paymentStatus: "Paid"
         }
       ]);
-      console.log(" Seeded initial orders into MongoDB");
+    }
+
+    const openingCount = await GrandOpening.countDocuments();
+    if (openingCount === 0) {
+      await GrandOpening.create({
+        id: "opening_cybercity",
+        storeName: "Cleanz24 - Cyber Hub Studio",
+        address: "Ground Floor, Building 10, DLF Cyber City, Phase 2, Gurugram",
+        city: "Gurugram",
+        state: "Haryana",
+        openingDate: "October 25, 2026",
+        openingTime: "10:00 AM IST",
+        specialOffer: "Flat 20% OFF for First 100 Walk-in Orders + Free Shoe Spa!",
+        contactPhone: "+91 91380 04800",
+        badgeText: "🎉 GRAND OPENING",
+        isActive: true,
+        displayOrder: 1,
+        createdAt: new Date()
+      });
+      console.log(" Seeded initial Grand Opening announcement into MongoDB");
     }
   } catch (err) {
     console.error("MongoDB seeding error:", err.message);
@@ -184,4 +223,4 @@ export async function connectDB() {
   }
 }
 
-export { User, Order, Store, Valet, WalletTransaction, getFallbackDb, saveFallbackDb };
+export { User, Order, Store, Valet, WalletTransaction, GrandOpening, getFallbackDb, saveFallbackDb };

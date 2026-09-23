@@ -5,7 +5,7 @@ import {
   Clock, Truck, Check, X, Search, Filter, Phone, MessageCircle,
   ChevronRight, ArrowUpRight, BarChart3, Tag, Sparkles, Building2,
   Lock, Eye, AlertCircle, RefreshCw, Smartphone, Sun, Moon,
-  Mail, Copy, ExternalLink, Wallet
+  Mail, Copy, ExternalLink, Wallet, Calendar
 } from 'lucide-react';
 import initialStoresData from '../data/stores.json';
 import api from '../services/api.js';
@@ -133,6 +133,29 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
   const [isDeletingUser, setIsDeletingUser] = useState(false);
   const [userActionMsg, setUserActionMsg] = useState('');
 
+  // ── Grand Openings & New Studio Launches State (CRUD & Live Toggle) ────────
+  const [grandOpeningsList, setGrandOpeningsList] = useState([]);
+  const [isLoadingOpenings, setIsLoadingOpenings] = useState(false);
+  const [showAddOpeningModal, setShowAddOpeningModal] = useState(false);
+  const [editingOpening, setEditingOpening] = useState(null);
+  const [openingToDelete, setOpeningToDelete] = useState(null);
+  const [isSubmittingOpening, setIsSubmittingOpening] = useState(false);
+  const [isDeletingOpening, setIsDeletingOpening] = useState(false);
+  const [openingActionMsg, setOpeningActionMsg] = useState('');
+  const [openingFormData, setOpeningFormData] = useState({
+    storeName: '',
+    address: '',
+    city: 'Gurugram',
+    state: 'Haryana',
+    openingDate: '',
+    openingTime: '10:00 AM IST',
+    specialOffer: 'Flat 20% OFF on First 100 Orders & Free Shoe Spa!',
+    contactPhone: '+91 91380 04800',
+    badgeText: '🎉 GRAND OPENING',
+    isActive: true,
+    displayOrder: 0
+  });
+
   // ── Orders State (CRUD & Status Stepper) ────────────────────────────────────
   const [ordersList, setOrdersList] = useState([
     {
@@ -145,7 +168,7 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
       statusStep: 3,
       store: 'Sector 41 Noida',
       date: 'Today, 11:30 AM',
-      driver: 'David Santos (EV Van #14)',
+      driver: 'Ramesh Kumar (EV Van #14)',
       address: 'Supertech Supernova, Sector 94, Noida'
     },
     {
@@ -158,7 +181,7 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
       statusStep: 4,
       store: 'Sector 41 Noida',
       date: 'Today, 01:15 PM',
-      driver: 'David Santos (EV Van #14)',
+      driver: 'Ramesh Kumar (EV Van #14)',
       address: '2735, 27th Floor Super Astilis, Sector 94, Noida'
     },
     {
@@ -267,7 +290,7 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
               statusStep: o.statusStep || 1,
               store: o.studioName || o.store || 'Sector 41 Noida',
               date: o.pickupDate || 'Today',
-              driver: o.driver ? (typeof o.driver === 'object' ? `${o.driver.name} (${o.driver.vehicle})` : o.driver) : 'David Santos (EV Van #14)',
+              driver: o.driver ? (typeof o.driver === 'object' ? `${o.driver.name} (${o.driver.vehicle})` : o.driver) : 'Ramesh Kumar (EV Van #14)',
               address: o.address || 'Sector 94, Noida'
             }));
             setOrdersList(mapped);
@@ -286,8 +309,155 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
 
       // Fetch registered customers from MongoDB Atlas / backend
       loadAdminUsers();
+
+      // Fetch grand opening announcements (all including inactive for admin)
+      loadGrandOpenings();
     }
   }, [isAuthenticated]);
+
+  const loadGrandOpenings = () => {
+    setIsLoadingOpenings(true);
+    api.grandOpenings.getAll(true)
+      .then(res => {
+        if (res && Array.isArray(res.grandOpenings)) {
+          setGrandOpeningsList(res.grandOpenings);
+        }
+      })
+      .catch(err => {
+        console.log('Using default grand opening announcement in AdminPanel:', err.message);
+        setGrandOpeningsList([
+          {
+            id: "opening_cybercity",
+            storeName: "Cleanz24 - Cyber Hub Studio",
+            address: "Ground Floor, Building 10, DLF Cyber City, Phase 2, Gurugram",
+            city: "Gurugram",
+            state: "Haryana",
+            openingDate: "October 25, 2026",
+            openingTime: "10:00 AM IST",
+            specialOffer: "Flat 20% OFF for First 100 Walk-in Orders + Free Shoe Spa!",
+            contactPhone: "+91 91380 04800",
+            badgeText: "🎉 GRAND OPENING",
+            isActive: true,
+            displayOrder: 1
+          }
+        ]);
+      })
+      .finally(() => setIsLoadingOpenings(false));
+  };
+
+  const handleOpenAddOpeningModal = () => {
+    setEditingOpening(null);
+    setOpeningFormData({
+      storeName: '',
+      address: '',
+      city: 'Gurugram',
+      state: 'Haryana',
+      openingDate: '',
+      openingTime: '10:00 AM IST',
+      specialOffer: 'Flat 20% OFF on First 100 Orders & Free Shoe Spa!',
+      contactPhone: '+91 91380 04800',
+      badgeText: '🎉 GRAND OPENING',
+      isActive: true,
+      displayOrder: 0
+    });
+    setShowAddOpeningModal(true);
+  };
+
+  const handleOpenEditOpeningModal = (opening) => {
+    setEditingOpening(opening);
+    setOpeningFormData({
+      storeName: opening.storeName || '',
+      address: opening.address || '',
+      city: opening.city || 'Gurugram',
+      state: opening.state || 'Haryana',
+      openingDate: opening.openingDate || '',
+      openingTime: opening.openingTime || '10:00 AM IST',
+      specialOffer: opening.specialOffer || '',
+      contactPhone: opening.contactPhone || '+91 91380 04800',
+      badgeText: opening.badgeText || '🎉 GRAND OPENING',
+      isActive: opening.isActive !== false,
+      displayOrder: opening.displayOrder || 0
+    });
+    setShowAddOpeningModal(true);
+  };
+
+  const handleSaveOpening = async (e) => {
+    if (e) e.preventDefault();
+    if (!openingFormData.storeName.trim() || !openingFormData.address.trim() || !openingFormData.openingDate.trim()) {
+      alert('Please enter Store Name, Address, and Opening Date');
+      return;
+    }
+
+    setIsSubmittingOpening(true);
+    try {
+      if (editingOpening) {
+        const id = editingOpening.id || editingOpening._id;
+        const res = await api.grandOpenings.update(id, openingFormData);
+        const updated = res.grandOpening || { ...editingOpening, ...openingFormData };
+        setGrandOpeningsList(prev => prev.map(o => (o.id === id || o._id === id) ? updated : o));
+        setOpeningActionMsg(`🎉 Updated store launch for "${openingFormData.storeName}"!`);
+      } else {
+        const res = await api.grandOpenings.create(openingFormData);
+        const created = res.grandOpening || { ...openingFormData, id: `opening_${Date.now()}` };
+        setGrandOpeningsList(prev => [created, ...prev]);
+        setOpeningActionMsg(`🎉 Added new Grand Opening announcement for "${openingFormData.storeName}"!`);
+      }
+      setShowAddOpeningModal(false);
+      setEditingOpening(null);
+    } catch (err) {
+      console.error('Error saving grand opening:', err.message);
+      alert(`Failed to save: ${err.message}`);
+    } finally {
+      setIsSubmittingOpening(false);
+      setTimeout(() => setOpeningActionMsg(''), 4000);
+    }
+  };
+
+  const handleToggleOpeningActive = async (opening) => {
+    const id = opening.id || opening._id;
+    try {
+      await api.grandOpenings.toggle(id);
+      setGrandOpeningsList(prev => prev.map(o => {
+        if (o.id === id || o._id === id) {
+          return { ...o, isActive: !o.isActive };
+        }
+        return o;
+      }));
+      setOpeningActionMsg(`${!opening.isActive ? '🟢 Activated' : '⚪ Hidden'} launch banner for "${opening.storeName}"`);
+    } catch (err) {
+      console.error('Toggle error:', err.message);
+      setGrandOpeningsList(prev => prev.map(o => {
+        if (o.id === id || o._id === id) {
+          return { ...o, isActive: !o.isActive };
+        }
+        return o;
+      }));
+    } finally {
+      setTimeout(() => setOpeningActionMsg(''), 3000);
+    }
+  };
+
+  const handleConfirmDeleteOpening = async () => {
+    if (!openingToDelete) return;
+    const id = openingToDelete.id || openingToDelete._id;
+    const name = openingToDelete.storeName;
+    setIsDeletingOpening(true);
+
+    try {
+      await api.grandOpenings.delete(id);
+      setGrandOpeningsList(prev => prev.filter(o => o.id !== id && o._id !== id));
+      setOpeningActionMsg(`🗑️ Deleted store launch announcement for "${name}"`);
+      setOpeningToDelete(null);
+    } catch (err) {
+      console.error('Delete error:', err.message);
+      setGrandOpeningsList(prev => prev.filter(o => o.id !== id && o._id !== id));
+      setOpeningActionMsg(`🗑️ Removed announcement for "${name}"`);
+      setOpeningToDelete(null);
+    } finally {
+      setIsDeletingOpening(false);
+      setTimeout(() => setOpeningActionMsg(''), 3000);
+    }
+  };
 
   const loadAdminUsers = (search) => {
     setIsLoadingUsers(true);
@@ -411,7 +581,7 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
       statusStep: 1,
       store: newOrderData.store,
       date: 'Just now',
-      driver: 'David Santos (EV Van #14)',
+      driver: 'Ramesh Kumar (EV Van #14)',
       address: newOrderData.address || 'Direct Store Drop'
     };
     setOrdersList([newOrd, ...ordersList]);
@@ -619,7 +789,7 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
 
   // Fleet Valets
   const roleValets = [
-    { name: 'David Santos', role: 'Cleanz EV Van #14', area: 'Sector 41, Sector 94, Sector 18 Noida', status: 'On Delivery', rating: '4.9 ⭐', phone: '+91 91380 04800', store: 'Sector 41 Noida' },
+    { name: 'Ramesh Kumar', role: 'Cleanz EV Van #14', area: 'Sector 41, Sector 94, Sector 18 Noida', status: 'On Delivery', rating: '4.9 ⭐', phone: '+91 91380 04800', store: 'Sector 41 Noida' },
     { name: 'Rahul Verma', role: 'Cleanz EV Bike #08', area: 'Sector 41, Sector 50 Noida', status: 'Available', rating: '4.8 ⭐', phone: '+91 91380 04801', store: 'Sector 41 Noida' },
     { name: 'Amit Kumar', role: 'Cleanz EV Van #03', area: 'Sector 137, Advant Navis Park', status: 'On Pickup', rating: '4.9 ⭐', phone: '+91 91380 04802', store: 'Sector 137 Noida' },
   ];
@@ -630,6 +800,7 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
   // Unified Admin Navigation Tabs
   const availableTabs = [
     { id: 'overview', label: 'Pan-India Overview', icon: BarChart3 },
+    { id: 'openings', label: `🎉 Grand Openings (${grandOpeningsList.length})`, icon: Sparkles },
     { id: 'orders', label: `All Orders (${ordersList.length})`, icon: Package },
     { id: 'users', label: `Customers (${usersList.length})`, icon: Users },
     { id: 'stores', label: `100+ Studios (${storesList.length})`, icon: Store },
@@ -1215,6 +1386,720 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Live Mobile App Grand Opening Banner Quick Control Widget */}
+            {(() => {
+              const activeOpening = grandOpeningsList.find(o => o.isActive !== false) || grandOpeningsList[0];
+              if (!activeOpening) return null;
+              return (
+                <div style={{
+                  background: isDark ? 'linear-gradient(135deg, rgba(6, 78, 59, 0.5) 0%, rgba(15, 23, 42, 0.8) 100%)' : 'linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%)',
+                  border: '1.5px solid rgba(16, 185, 129, 0.4)',
+                  borderRadius: '18px',
+                  padding: '18px 20px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '14px',
+                  boxShadow: '0 4px 20px rgba(16, 185, 129, 0.12)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: '280px' }}>
+                    <div style={{
+                      width: '46px',
+                      height: '46px',
+                      borderRadius: '14px',
+                      background: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#FFF',
+                      fontSize: '22px',
+                      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)',
+                      flexShrink: 0
+                    }}>
+                      🎉
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#059669', background: 'rgba(16, 185, 129, 0.15)', padding: '2px 8px', borderRadius: '6px' }}>
+                          Live Customer App Banner
+                        </span>
+                        <span style={{ fontSize: '11px', color: activeOpening.isActive !== false ? '#10B981' : '#94A3B8', fontWeight: '700' }}>
+                          {activeOpening.isActive !== false ? '● Active' : '○ Hidden'}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '15px', fontWeight: '800', color: t.textTitle }}>
+                        {activeOpening.storeName}
+                      </div>
+                      <div style={{ fontSize: '12px', color: t.textMuted }}>
+                        📅 {activeOpening.openingDate} • 🎁 {activeOpening.specialOffer || 'Flat 20% OFF'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <button
+                      type="button"
+                      id="btn-overview-edit-grand-opening"
+                      onClick={() => handleOpenEditOpeningModal(activeOpening)}
+                      style={{
+                        padding: '10px 18px',
+                        borderRadius: '12px',
+                        background: 'var(--primary-green)',
+                        border: 'none',
+                        color: '#FFF',
+                        fontSize: '13px',
+                        fontWeight: '800',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: '0 4px 14px rgba(39, 162, 67, 0.35)'
+                      }}
+                    >
+                      <Pencil size={15} /> Edit Grand Opening
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('openings')}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '12px',
+                        background: isDark ? 'rgba(255, 255, 255, 0.08)' : '#FFFFFF',
+                        border: `1px solid ${t.cardBorder}`,
+                        color: t.textTitle,
+                        fontSize: '12.5px',
+                        fontWeight: '700',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Manage All ({grandOpeningsList.length}) →
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+
+          </div>
+        )}
+
+        {/* ── TAB: GRAND OPENING OF NEW STORES (CRUD & LIVE CONTROLS) ────────── */}
+        {activeTab === 'openings' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+            {/* Notification Toast Message */}
+            {openingActionMsg && (
+              <div style={{
+                padding: '12px 18px',
+                borderRadius: '12px',
+                background: openingActionMsg.includes('🗑️') ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)',
+                border: `1px solid ${openingActionMsg.includes('🗑️') ? 'rgba(239, 68, 68, 0.35)' : 'rgba(34, 197, 94, 0.35)'}`,
+                color: openingActionMsg.includes('🗑️') ? '#EF4444' : '#4ADE80',
+                fontSize: '13px',
+                fontWeight: '700',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <CheckCircle2 size={16} />
+                <span>{openingActionMsg}</span>
+              </div>
+            )}
+
+            {/* Header & Quick Action Buttons */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '14px' }}>
+              <div>
+                <h3 style={{ fontSize: '20px', margin: '0 0 4px 0', color: t.textTitle, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Sparkles size={22} color="#F59E0B" />
+                  Grand Opening & New Studio Launches
+                </h3>
+                <div style={{ fontSize: '12px', color: t.textMuted }}>
+                  Control the Grand Opening announcements shown live to customers on the mobile app home screen.
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={loadGrandOpenings}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    background: isDark ? 'rgba(255,255,255,0.06)' : '#F1F5F9',
+                    border: `1px solid ${t.cardBorder}`,
+                    color: t.textTitle,
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                  title="Reload from MongoDB Atlas"
+                >
+                  <RefreshCw size={13} className={isLoadingOpenings ? 'animate-spin' : ''} />
+                  Refresh
+                </button>
+
+                {grandOpeningsList.length > 0 && (
+                  <button
+                    type="button"
+                    id="btn-edit-active-grand-opening"
+                    onClick={() => {
+                      const activeOpening = grandOpeningsList.find(o => o.isActive !== false) || grandOpeningsList[0];
+                      if (activeOpening) handleOpenEditOpeningModal(activeOpening);
+                    }}
+                    style={{
+                      padding: '9px 16px',
+                      borderRadius: '12px',
+                      background: isDark ? 'rgba(59, 130, 246, 0.2)' : '#EFF6FF',
+                      border: '1.5px solid #3B82F6',
+                      color: '#2563EB',
+                      fontSize: '12.5px',
+                      fontWeight: '800',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 8px rgba(59, 130, 246, 0.2)'
+                    }}
+                  >
+                    <Pencil size={14} /> ✏️ Edit Live Announcement
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  id="btn-add-grand-opening"
+                  onClick={handleOpenAddOpeningModal}
+                  style={{
+                    padding: '9px 16px',
+                    borderRadius: '12px',
+                    background: 'var(--primary-green)',
+                    border: 'none',
+                    color: '#FFF',
+                    fontSize: '12.5px',
+                    fontWeight: '800',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 4px 14px rgba(39, 162, 67, 0.4)'
+                  }}
+                >
+                  <Plus size={15} /> Add New Store Launch
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Metrics Bar */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+              <div style={{
+                background: t.cardBg,
+                border: `1px solid ${t.cardBorder}`,
+                borderRadius: '16px',
+                padding: '14px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <div style={{ padding: '10px', borderRadius: '12px', background: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B' }}>
+                  <Store size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', color: t.textMuted, fontWeight: '600' }}>TOTAL LAUNCHES</div>
+                  <div style={{ fontSize: '18px', fontWeight: '800', color: t.textTitle }}>{grandOpeningsList.length} Announcements</div>
+                </div>
+              </div>
+
+              <div style={{
+                background: t.cardBg,
+                border: `1px solid ${t.cardBorder}`,
+                borderRadius: '16px',
+                padding: '14px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <div style={{ padding: '10px', borderRadius: '12px', background: 'rgba(34, 197, 94, 0.15)', color: '#22C55E' }}>
+                  <Eye size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', color: t.textMuted, fontWeight: '600' }}>LIVE ON MOBILE APP</div>
+                  <div style={{ fontSize: '18px', fontWeight: '800', color: '#22C55E' }}>
+                    {grandOpeningsList.filter(o => o.isActive !== false).length} Active
+                  </div>
+                </div>
+              </div>
+
+              <div style={{
+                background: t.cardBg,
+                border: `1px solid ${t.cardBorder}`,
+                borderRadius: '16px',
+                padding: '14px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <div style={{ padding: '10px', borderRadius: '12px', background: 'rgba(148, 163, 184, 0.15)', color: '#94A3B8' }}>
+                  <Lock size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', color: t.textMuted, fontWeight: '600' }}>HIDDEN / DRAFTS</div>
+                  <div style={{ fontSize: '18px', fontWeight: '800', color: t.textTitle }}>
+                    {grandOpeningsList.filter(o => o.isActive === false).length} Hidden
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Live Mobile Card Preview */}
+            {grandOpeningsList.length > 0 && (
+              <div style={{
+                background: isDark ? 'rgba(255,255,255,0.03)' : '#F8FAFC',
+                border: `1px dashed ${t.cardBorder}`,
+                borderRadius: '20px',
+                padding: '16px 20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ fontSize: '12.5px', fontWeight: '800', color: t.textTitle, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Smartphone size={16} color="var(--primary-green)" />
+                    📱 Real-time Mobile Home Screen Card Preview:
+                  </div>
+                  {(() => {
+                    const previewItem = grandOpeningsList.find(o => o.isActive !== false) || grandOpeningsList[0];
+                    if (!previewItem) return null;
+                    return (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button
+                          type="button"
+                          id="btn-preview-edit-banner"
+                          onClick={() => handleOpenEditOpeningModal(previewItem)}
+                          style={{
+                            padding: '6px 14px',
+                            borderRadius: '10px',
+                            background: 'var(--primary-green)',
+                            border: 'none',
+                            color: '#FFFFFF',
+                            fontSize: '12px',
+                            fontWeight: '800',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            boxShadow: '0 2px 8px rgba(39, 162, 67, 0.3)'
+                          }}
+                        >
+                          <Pencil size={13} /> ✏️ Edit This Announcement
+                        </button>
+                        <span style={{ fontSize: '11px', color: t.textMuted }}>
+                          (Click banner or button to edit)
+                        </span>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {(() => {
+                  const previewItem = grandOpeningsList.find(o => o.isActive !== false) || grandOpeningsList[0];
+                  if (!previewItem) return null;
+                  return (
+                    <div 
+                      id="grand-opening-preview-card"
+                      onClick={() => handleOpenEditOpeningModal(previewItem)}
+                      style={{
+                        maxWidth: '480px',
+                        background: 'linear-gradient(135deg, #064E3B 0%, #065F46 45%, #047857 100%)',
+                        borderRadius: '18px',
+                        padding: '16px 18px',
+                        border: '1.5px solid rgba(52, 211, 153, 0.5)',
+                        boxShadow: '0 10px 28px -4px rgba(4, 120, 87, 0.4), 0 2px 6px rgba(0, 0, 0, 0.1)',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        cursor: 'pointer'
+                      }}
+                      title="Click anywhere to Edit this Grand Opening Announcement"
+                    >
+                      <div style={{
+                        position: 'absolute',
+                        top: '-20px',
+                        right: '-20px',
+                        width: '130px',
+                        height: '130px',
+                        background: 'radial-gradient(circle, rgba(253, 224, 71, 0.25) 0%, rgba(52, 211, 153, 0) 70%)',
+                        pointerEvents: 'none'
+                      }} />
+
+                      <div style={{ position: 'relative', zIndex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                          <div style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            background: 'linear-gradient(90deg, #F59E0B 0%, #EAB308 100%)',
+                            borderRadius: '20px',
+                            padding: '3px 9px',
+                            fontSize: '10px',
+                            fontWeight: '900',
+                            color: '#0B140D',
+                            letterSpacing: '0.5px',
+                            textTransform: 'uppercase',
+                            boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
+                          }}>
+                            <Sparkles size={11} color="#0B140D" />
+                            {previewItem.badgeText || "🎉 GRAND OPENING"}
+                          </div>
+
+                          <div style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            background: '#FFFFFF',
+                            color: '#064E3B',
+                            borderRadius: '12px',
+                            padding: '4px 10px',
+                            fontSize: '11px',
+                            fontWeight: '800',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+                          }}>
+                            <Pencil size={11} color="#064E3B" />
+                            Click to Edit
+                          </div>
+                        </div>
+
+                        <div style={{ fontSize: '17px', fontWeight: '800', color: '#FFFFFF', marginBottom: '4px', letterSpacing: '-0.01em' }}>
+                          {previewItem.storeName}
+                        </div>
+
+                        <div style={{ fontSize: '11.5px', color: '#D1FAE5', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '10px' }}>
+                          <MapPin size={12} color="#34D399" style={{ flexShrink: 0 }} />
+                          <span style={{ display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                            {previewItem.address}
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+                          <div style={{ background: 'rgba(255, 255, 255, 0.15)', border: '1px solid rgba(255, 255, 255, 0.2)', padding: '3px 8px', borderRadius: '8px', fontSize: '11px', fontWeight: '700', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Calendar size={11} color="#6EE7B7" />
+                            <span>{previewItem.openingDate}</span>
+                          </div>
+                          <div style={{ background: 'rgba(255, 255, 255, 0.15)', border: '1px solid rgba(255, 255, 255, 0.2)', padding: '3px 8px', borderRadius: '8px', fontSize: '11px', fontWeight: '700', color: '#FDE047', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Clock size={11} color="#FDE047" />
+                            <span>{previewItem.openingTime}</span>
+                          </div>
+                          {previewItem.specialOffer && (
+                            <div style={{ background: 'rgba(254, 240, 138, 0.18)', border: '1px solid rgba(253, 224, 71, 0.45)', padding: '3px 8px', borderRadius: '8px', fontSize: '11px', fontWeight: '700', color: '#FEF08A', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <span>🎁</span>
+                              <span>{previewItem.specialOffer}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Interactive edit button at bottom of preview */}
+                        <div style={{
+                          borderTop: '1px solid rgba(255, 255, 255, 0.18)',
+                          paddingTop: '10px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}>
+                          <span style={{ fontSize: '10.5px', color: 'rgba(255, 255, 255, 0.75)' }}>
+                            📱 Showing live on customer home screen
+                          </span>
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            background: 'rgba(255, 255, 255, 0.2)',
+                            color: '#FFFFFF',
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            fontSize: '11.5px',
+                            fontWeight: '800'
+                          }}>
+                            <Pencil size={12} /> Edit Details & 20% Offer →
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* List / Cards of All Announcements */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ fontSize: '14px', fontWeight: '800', color: t.textTitle }}>
+                Announcements Management ({grandOpeningsList.length})
+              </div>
+
+              {grandOpeningsList.length === 0 ? (
+                <div style={{
+                  background: t.cardBg,
+                  border: `1px solid ${t.cardBorder}`,
+                  borderRadius: '16px',
+                  padding: '40px 20px',
+                  textAlign: 'center',
+                  color: t.textMuted
+                }}>
+                  <Store size={40} style={{ margin: '0 auto 12px auto', opacity: 0.4 }} />
+                  <h4 style={{ margin: '0 0 6px 0', color: t.textTitle, fontSize: '16px' }}>No Store Launches Yet</h4>
+                  <p style={{ margin: '0 0 16px 0', fontSize: '12.5px' }}>
+                    Announce your upcoming store grand opening with date, time, and special perks for walk-in customers.
+                  </p>
+                  <button
+                    onClick={handleOpenAddOpeningModal}
+                    style={{
+                      padding: '10px 18px',
+                      borderRadius: '12px',
+                      background: 'var(--primary-green)',
+                      border: 'none',
+                      color: '#FFF',
+                      fontSize: '13px',
+                      fontWeight: '700',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Plus size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+                    Add First Store Launch
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '14px' }}>
+                  {grandOpeningsList.map((opening) => {
+                    const isLive = opening.isActive !== false;
+                    return (
+                      <div
+                        key={opening.id || opening._id}
+                        style={{
+                          background: t.cardBg,
+                          border: `1px solid ${isLive ? 'rgba(39, 162, 67, 0.35)' : t.cardBorder}`,
+                          borderRadius: '18px',
+                          padding: '16px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          gap: '14px',
+                          boxShadow: isDark ? 'none' : '0 2px 10px rgba(0,0,0,0.03)',
+                          position: 'relative'
+                        }}
+                      >
+                        {/* Top Meta: Badge & Live Status Pill */}
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                            <span style={{
+                              fontSize: '10.5px',
+                              fontWeight: '800',
+                              padding: '3px 8px',
+                              borderRadius: '8px',
+                              background: 'rgba(245, 158, 11, 0.15)',
+                              color: '#F59E0B'
+                            }}>
+                              {opening.badgeText || "🎉 GRAND OPENING"}
+                            </span>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              {/* Quick Edit button in header */}
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditOpeningModal(opening)}
+                                style={{
+                                  padding: '4px 10px',
+                                  borderRadius: '8px',
+                                  background: isDark ? 'rgba(59, 130, 246, 0.2)' : '#EFF6FF',
+                                  border: '1px solid #3B82F6',
+                                  color: '#2563EB',
+                                  fontSize: '11px',
+                                  fontWeight: '800',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                                title="Edit this announcement"
+                              >
+                                <Pencil size={11} /> ✏️ Edit
+                              </button>
+
+                              {/* Live status badge */}
+                              <span style={{
+                                fontSize: '10.5px',
+                                fontWeight: '800',
+                                padding: '3px 8px',
+                                borderRadius: '8px',
+                                background: isLive ? 'rgba(34, 197, 94, 0.15)' : 'rgba(148, 163, 184, 0.15)',
+                                color: isLive ? '#22C55E' : '#94A3B8',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}>
+                                <span style={{
+                                  width: '6px',
+                                  height: '6px',
+                                  borderRadius: '50%',
+                                  background: isLive ? '#22C55E' : '#94A3B8'
+                                }} />
+                                {isLive ? 'Live on App' : 'Hidden'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Store Name */}
+                          <div style={{ fontSize: '16.5px', fontWeight: '800', color: t.textTitle, marginBottom: '4px' }}>
+                            {opening.storeName}
+                          </div>
+
+                          {/* Address & City */}
+                          <div style={{ fontSize: '12px', color: t.textMuted, display: 'flex', alignItems: 'flex-start', gap: '5px', marginBottom: '10px' }}>
+                            <MapPin size={13} color="var(--primary-green)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                            <span>{opening.address} ({opening.city || 'NCR'})</span>
+                          </div>
+
+                          {/* Date & Time Chips */}
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+                            <div style={{
+                              background: isDark ? 'rgba(255,255,255,0.06)' : '#F1F5F9',
+                              padding: '4px 8px',
+                              borderRadius: '8px',
+                              fontSize: '11.5px',
+                              fontWeight: '700',
+                              color: t.textTitle,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              <Calendar size={12} color="#10B981" />
+                              <span>{opening.openingDate}</span>
+                            </div>
+
+                            <div style={{
+                              background: isDark ? 'rgba(255,255,255,0.06)' : '#F1F5F9',
+                              padding: '4px 8px',
+                              borderRadius: '8px',
+                              fontSize: '11.5px',
+                              fontWeight: '700',
+                              color: t.textTitle,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              <Clock size={12} color="#F59E0B" />
+                              <span>{opening.openingTime}</span>
+                            </div>
+                          </div>
+
+                          {/* Special Offer */}
+                          {opening.specialOffer && (
+                            <div style={{
+                              background: isDark ? 'rgba(245, 158, 11, 0.08)' : '#FEF9C3',
+                              border: '1px solid rgba(245, 158, 11, 0.25)',
+                              borderRadius: '8px',
+                              padding: '6px 10px',
+                              fontSize: '11.5px',
+                              fontWeight: '600',
+                              color: isDark ? '#FDE047' : '#854D0E',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '5px'
+                            }}>
+                              <span>🎁</span>
+                              <span>{opening.specialOffer}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Action Buttons: Edit, Toggle Live, Delete */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '8px',
+                          borderTop: `1px solid ${t.subCardBorder}`,
+                          paddingTop: '12px'
+                        }}>
+                          {/* Toggle Active Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleOpeningActive(opening)}
+                            style={{
+                              padding: '7px 12px',
+                              borderRadius: '10px',
+                              background: isLive ? 'rgba(148, 163, 184, 0.12)' : 'rgba(34, 197, 94, 0.15)',
+                              border: `1px solid ${isLive ? 'rgba(148, 163, 184, 0.3)' : 'rgba(34, 197, 94, 0.4)'}`,
+                              color: isLive ? t.textMuted : '#22C55E',
+                              fontSize: '11.5px',
+                              fontWeight: '700',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                            title={isLive ? "Hide from customer mobile app" : "Publish live to customer mobile app"}
+                          >
+                            <Eye size={12} />
+                            {isLive ? 'Hide from App' : 'Make Live'}
+                          </button>
+
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            {/* Prominent Edit Button */}
+                            <button
+                              type="button"
+                              id={`btn-edit-opening-${opening.id || opening._id}`}
+                              onClick={() => handleOpenEditOpeningModal(opening)}
+                              style={{
+                                padding: '8px 14px',
+                                borderRadius: '10px',
+                                background: 'var(--primary-green)',
+                                border: 'none',
+                                color: '#FFFFFF',
+                                fontSize: '12px',
+                                fontWeight: '800',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: '0 2px 8px rgba(39, 162, 67, 0.3)'
+                              }}
+                              title="Edit Grand Opening date, time, store name, address, and special offer"
+                            >
+                              <Pencil size={13} />
+                              ✏️ Edit Details
+                            </button>
+
+                            {/* Delete Button */}
+                            <button
+                              type="button"
+                              onClick={() => setOpeningToDelete(opening)}
+                              style={{
+                                padding: '8px 12px',
+                                borderRadius: '10px',
+                                background: 'rgba(239, 68, 68, 0.12)',
+                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                color: '#EF4444',
+                                fontSize: '11.5px',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              <Trash2 size={12} />
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
           </div>
@@ -1912,7 +2797,52 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
                         {store.city}, {store.state}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <button
+                        id={`btn-studio-grand-opening-${store.id}`}
+                        onClick={() => {
+                          const existing = grandOpeningsList.find(o => 
+                            o.storeName?.toLowerCase().includes(store.name?.toLowerCase()) ||
+                            store.name?.toLowerCase().includes(o.storeName?.toLowerCase())
+                          );
+                          if (existing) {
+                            handleOpenEditOpeningModal(existing);
+                          } else {
+                            setEditingOpening(null);
+                            setOpeningFormData({
+                              storeName: store.name || '',
+                              address: store.address || '',
+                              city: store.city || 'Gurugram',
+                              state: store.state || 'Haryana',
+                              openingDate: '',
+                              openingTime: '10:00 AM IST',
+                              specialOffer: 'Flat 20% OFF for First 100 Walk-in Orders + Free Shoe Spa!',
+                              contactPhone: store.phone || '+91 91380 04800',
+                              badgeText: '🎉 GRAND OPENING',
+                              isActive: true,
+                              displayOrder: 0
+                            });
+                            setShowAddOpeningModal(true);
+                          }
+                        }}
+                        style={{
+                          padding: '5px 10px',
+                          borderRadius: '8px',
+                          background: isDark ? 'rgba(245, 158, 11, 0.15)' : '#FEF3C7',
+                          border: '1px solid rgba(245, 158, 11, 0.4)',
+                          color: '#D97706',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                        title={`Set or Edit Grand Opening Banner for ${store.name}`}
+                      >
+                        <Sparkles size={12} color="#D97706" /> Grand Opening
+                      </button>
+
                       <button
                         id={`btn-pricelist-${store.id}`}
                         onClick={() => handleOpenPriceListModal(store)}
@@ -3512,6 +4442,485 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
                 }}
               >
                 {isDeletingUser ? 'Deleting & Revoking...' : <><Trash2 size={14} /> Yes, Delete User</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: ADD / EDIT STORE LAUNCH ANNOUNCEMENT ─────────────────────── */}
+      {showAddOpeningModal && (
+        <div className="modal-overlay" style={{ zIndex: 3000 }}>
+          <div
+            className="bottom-sheet animate-fade-in"
+            style={{
+              padding: '24px',
+              maxWidth: '560px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              background: isDark ? '#0F172A' : '#FFFFFF',
+              color: t.textTitle,
+              borderRadius: '24px',
+              border: '1px solid rgba(245, 158, 11, 0.4)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+            }}
+          >
+            <div className="sheet-handle" />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div>
+                <h3 style={{ fontSize: '18px', margin: '0 0 2px 0', color: t.textTitle, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Sparkles size={20} color="#F59E0B" />
+                  {editingOpening ? 'Edit Store Launch Announcement' : 'Add New Store Grand Opening'}
+                </h3>
+                <div style={{ fontSize: '12px', color: t.textMuted }}>
+                  Will appear directly on customer mobile app home screen
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {editingOpening && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const target = editingOpening;
+                      setShowAddOpeningModal(false);
+                      setEditingOpening(null);
+                      setOpeningToDelete(target);
+                    }}
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.12)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      color: '#EF4444',
+                      borderRadius: '8px',
+                      padding: '5px 10px',
+                      fontSize: '11.5px',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    title="Delete Announcement"
+                  >
+                    <Trash2 size={13} /> Delete
+                  </button>
+                )}
+                <button
+                  className="btn-icon"
+                  onClick={() => { setShowAddOpeningModal(false); setEditingOpening(null); }}
+                  style={{ color: t.textMuted }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveOpening} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/* Store Name */}
+              <div>
+                <label style={{ fontSize: '11.5px', fontWeight: '700', color: t.textMuted, display: 'block', marginBottom: '4px' }}>
+                  STORE NAME *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Cleanz24 - Cyber Hub Studio"
+                  value={openingFormData.storeName}
+                  onChange={e => setOpeningFormData(prev => ({ ...prev, storeName: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: `1px solid ${t.cardBorder}`,
+                    background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F8FAFC',
+                    color: t.textTitle,
+                    fontSize: '13px',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              {/* Address */}
+              <div>
+                <label style={{ fontSize: '11.5px', fontWeight: '700', color: t.textMuted, display: 'block', marginBottom: '4px' }}>
+                  FULL ADDRESS *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Ground Floor, Building 10, DLF Cyber City, Phase 2"
+                  value={openingFormData.address}
+                  onChange={e => setOpeningFormData(prev => ({ ...prev, address: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: `1px solid ${t.cardBorder}`,
+                    background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F8FAFC',
+                    color: t.textTitle,
+                    fontSize: '13px',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              {/* City & State */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '11.5px', fontWeight: '700', color: t.textMuted, display: 'block', marginBottom: '4px' }}>
+                    CITY *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Gurugram, Noida, Delhi"
+                    value={openingFormData.city}
+                    onChange={e => setOpeningFormData(prev => ({ ...prev, city: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      border: `1px solid ${t.cardBorder}`,
+                      background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F8FAFC',
+                      color: t.textTitle,
+                      fontSize: '13px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11.5px', fontWeight: '700', color: t.textMuted, display: 'block', marginBottom: '4px' }}>
+                    STATE / REGION
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Haryana, Uttar Pradesh"
+                    value={openingFormData.state}
+                    onChange={e => setOpeningFormData(prev => ({ ...prev, state: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      border: `1px solid ${t.cardBorder}`,
+                      background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F8FAFC',
+                      color: t.textTitle,
+                      fontSize: '13px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Opening Date & Opening Time */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '11.5px', fontWeight: '700', color: t.textMuted, display: 'block', marginBottom: '4px' }}>
+                    OPENING DATE *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. October 25, 2026"
+                    value={openingFormData.openingDate}
+                    onChange={e => setOpeningFormData(prev => ({ ...prev, openingDate: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      border: `1px solid ${t.cardBorder}`,
+                      background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F8FAFC',
+                      color: t.textTitle,
+                      fontSize: '13px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11.5px', fontWeight: '700', color: t.textMuted, display: 'block', marginBottom: '4px' }}>
+                    OPENING TIME *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 10:00 AM IST"
+                    value={openingFormData.openingTime}
+                    onChange={e => setOpeningFormData(prev => ({ ...prev, openingTime: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      border: `1px solid ${t.cardBorder}`,
+                      background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F8FAFC',
+                      color: t.textTitle,
+                      fontSize: '13px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Special Launch Offer */}
+              <div>
+                <label style={{ fontSize: '11.5px', fontWeight: '700', color: t.textMuted, display: 'block', marginBottom: '4px' }}>
+                  SPECIAL LAUNCH OFFER (PERK / PROMO)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Flat 20% OFF for First 100 Walk-in Orders + Free Shoe Spa!"
+                  value={openingFormData.specialOffer}
+                  onChange={e => setOpeningFormData(prev => ({ ...prev, specialOffer: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: `1px solid ${t.cardBorder}`,
+                    background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F8FAFC',
+                    color: t.textTitle,
+                    fontSize: '13px',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              {/* Badge Text & RSVP Phone */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '11.5px', fontWeight: '700', color: t.textMuted, display: 'block', marginBottom: '4px' }}>
+                    BADGE TAG TEXT
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 🎉 GRAND OPENING"
+                    value={openingFormData.badgeText}
+                    onChange={e => setOpeningFormData(prev => ({ ...prev, badgeText: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      border: `1px solid ${t.cardBorder}`,
+                      background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F8FAFC',
+                      color: t.textTitle,
+                      fontSize: '13px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11.5px', fontWeight: '700', color: t.textMuted, display: 'block', marginBottom: '4px' }}>
+                    WHATSAPP RSVP PHONE
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="+91 91380 04800"
+                    value={openingFormData.contactPhone}
+                    onChange={e => setOpeningFormData(prev => ({ ...prev, contactPhone: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      border: `1px solid ${t.cardBorder}`,
+                      background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F8FAFC',
+                      color: t.textTitle,
+                      fontSize: '13px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Active Toggle */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 14px',
+                borderRadius: '12px',
+                background: isDark ? 'rgba(255, 255, 255, 0.04)' : '#F1F5F9',
+                border: `1px solid ${t.cardBorder}`,
+                marginTop: '4px'
+              }}>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: '700', color: t.textTitle }}>Publish Live on Mobile App</div>
+                  <div style={{ fontSize: '11px', color: t.textMuted }}>When enabled, banner will display prominently on customer home screen</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={openingFormData.isActive}
+                  onChange={e => setOpeningFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                  style={{ width: '18px', height: '18px', accentColor: 'var(--primary-green)', cursor: 'pointer' }}
+                />
+              </div>
+
+              {/* Submit Buttons */}
+              <div style={{ display: 'flex', gap: '10px', marginTop: '8px', flexWrap: 'wrap' }}>
+                {editingOpening && (
+                  <button
+                    type="button"
+                    id="btn-modal-delete-opening"
+                    onClick={() => {
+                      const target = editingOpening;
+                      setShowAddOpeningModal(false);
+                      setEditingOpening(null);
+                      setOpeningToDelete(target);
+                    }}
+                    style={{
+                      padding: '12px 16px',
+                      borderRadius: '12px',
+                      background: 'rgba(239, 68, 68, 0.12)',
+                      border: '1.5px solid rgba(239, 68, 68, 0.4)',
+                      color: '#EF4444',
+                      fontSize: '13px',
+                      fontWeight: '800',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                    title="Delete this announcement permanently"
+                  >
+                    <Trash2 size={16} /> Delete
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => { setShowAddOpeningModal(false); setEditingOpening(null); }}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    borderRadius: '12px',
+                    background: isDark ? 'rgba(255,255,255,0.06)' : '#F1F5F9',
+                    border: `1px solid ${t.cardBorder}`,
+                    color: t.textTitle,
+                    fontSize: '13px',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingOpening}
+                  style={{
+                    flex: 2,
+                    minWidth: '180px',
+                    padding: '12px',
+                    borderRadius: '12px',
+                    background: 'var(--primary-green)',
+                    border: 'none',
+                    color: '#FFF',
+                    fontSize: '13px',
+                    fontWeight: '800',
+                    cursor: isSubmittingOpening ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    boxShadow: '0 4px 14px rgba(39, 162, 67, 0.4)'
+                  }}
+                >
+                  {isSubmittingOpening ? 'Saving to Database...' : (editingOpening ? '✓ Update Announcement' : '✓ Publish Announcement')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: CONFIRM DELETE STORE LAUNCH ──────────────────────────────── */}
+      {openingToDelete && (
+        <div className="modal-overlay" style={{ zIndex: 3200 }}>
+          <div
+            className="bottom-sheet animate-fade-in"
+            style={{
+              padding: '24px',
+              maxWidth: '440px',
+              width: '100%',
+              background: isDark ? '#0F172A' : '#FFFFFF',
+              color: t.textTitle,
+              borderRadius: '24px',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.45)'
+            }}
+          >
+            <div className="sheet-handle" />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '50%',
+                background: 'rgba(239, 68, 68, 0.15)',
+                color: '#EF4444',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Trash2 size={20} />
+              </div>
+              <button className="btn-icon" onClick={() => setOpeningToDelete(null)} style={{ color: t.textMuted }}>
+                <X size={16} />
+              </button>
+            </div>
+
+            <h3 style={{ fontSize: '17px', margin: '0 0 8px 0', color: t.textTitle }}>
+              Delete Store Launch Announcement?
+            </h3>
+            <div style={{
+              padding: '12px',
+              borderRadius: '12px',
+              background: 'rgba(239, 68, 68, 0.08)',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              fontSize: '13px',
+              color: isDark ? '#FCA5A5' : '#B91C1C',
+              lineHeight: 1.5,
+              marginBottom: '14px'
+            }}>
+              <strong>Store:</strong> {openingToDelete.storeName}<br />
+              <strong>Address:</strong> {openingToDelete.address}<br />
+              Are you sure you want to remove this announcement? It will be deleted from the database and disappear from the customer app immediately.
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setOpeningToDelete(null)}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '12px',
+                  background: isDark ? 'rgba(255,255,255,0.06)' : '#F1F5F9',
+                  border: `1px solid ${t.cardBorder}`,
+                  color: t.textTitle,
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteOpening}
+                disabled={isDeletingOpening}
+                style={{
+                  flex: 2,
+                  padding: '12px',
+                  borderRadius: '12px',
+                  background: '#EF4444',
+                  border: 'none',
+                  color: '#FFF',
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  cursor: isDeletingOpening ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)'
+                }}
+              >
+                {isDeletingOpening ? 'Deleting...' : <><Trash2 size={14} /> Yes, Delete Announcement</>}
               </button>
             </div>
           </div>
