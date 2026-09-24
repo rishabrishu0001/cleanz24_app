@@ -910,39 +910,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
               {isSendingOtp ? 'Sending OTP Code...' : 'Get Verification OTP →'}
             </button>
 
-            {/* App Store & Google Play Reviewer Demo Chip */}
-            <div style={{
-              width: '100%',
-              padding: '8px 12px',
-              borderRadius: '10px',
-              background: 'rgba(59, 130, 246, 0.08)',
-              border: '1px dashed rgba(59, 130, 246, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '8px',
-              marginTop: '2px'
-            }}>
-              <span style={{ fontSize: '11px', color: '#2563EB', fontWeight: '600' }}>
-                🧪 Reviewer Demo: 9999999999 (OTP: 123456)
-              </span>
-              <button
-                type="button"
-                onClick={() => { setPhone('9999999999'); setOtpError(''); }}
-                style={{
-                  fontSize: '11px',
-                  color: '#FFFFFF',
-                  background: '#2563EB',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '3px 8px',
-                  cursor: 'pointer',
-                  fontWeight: '700'
-                }}
-              >
-                Use Demo
-              </button>
-            </div>
+
 
 
 

@@ -408,30 +408,58 @@ export default function StoresScreen({
         }}
         onClick={() => setExpandedStore(isExpanded ? null : store.id)}
       >
-        {/* Top Row */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
+        {/* Top Row with Studio Storefront Thumbnail */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+          {/* Storefront Image Thumbnail */}
+          <div style={{
+            width: '82px',
+            height: '82px',
+            borderRadius: '14px',
+            overflow: 'hidden',
+            flexShrink: 0,
+            border: '1px solid rgba(39, 162, 67, 0.25)',
+            boxShadow: '0 3px 10px rgba(0,0,0,0.08)',
+            position: 'relative',
+            background: '#F0FDF4'
+          }}>
+            <img 
+              src="/images/studio_front.jpg" 
+              alt={store.name} 
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
+              loading="lazy"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = '/images/storefront_hero.jpg';
+              }}
+            />
+          </div>
+
+          {/* Details in Center */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-              <div style={{
-                width: '30px', height: '30px', borderRadius: '9px',
-                background: 'rgba(39,162,67,0.15)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-              }}>
-                <Store size={15} color="var(--primary-green)" />
-              </div>
-              <span style={{ fontSize: '13px', fontWeight: '700', lineHeight: 1.3, color: 'var(--text-main)' }}>
+            {/* Store Title */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '13.5px', fontWeight: '800', lineHeight: 1.3, color: 'var(--text-main)' }}>
                 {store.name.replace('Cleanz24 - ', '')}
               </span>
               {isOpeningSoon && (
-                <span className="badge badge-amber" style={{ fontSize: '10px' }}>
+                <span className="badge badge-amber" style={{ fontSize: '9.5px', padding: '2px 6px' }}>
                   Opening Soon
                 </span>
               )}
             </div>
 
+            {/* Rating Row */}
+            {!isOpeningSoon && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '3px' }}>
+                <span style={{ color: '#F59E0B', fontSize: '11px' }}>⭐</span>
+                <span style={{ fontSize: '11.5px', fontWeight: '800', color: ratingColor(store.rating) }}>{store.rating}</span>
+                <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>({store.reviews} reviews)</span>
+              </div>
+            )}
+
             {/* Distance Badge */}
             {showDistance && store.distance !== undefined && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '3px' }}>
                 <Navigation size={11} color="var(--primary-green)" />
                 <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary-green)' }}>
                   {formatDistance(store.distance)} away
@@ -439,11 +467,11 @@ export default function StoresScreen({
               </div>
             )}
 
-            {/* Address preview */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+            {/* Address */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4px', marginBottom: '5px' }}>
               <MapPin size={11} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: '2px' }} />
               <span style={{
-                fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.4,
+                fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.35,
                 overflow: isExpanded ? 'visible' : 'hidden',
                 display: isExpanded ? 'block' : '-webkit-box',
                 WebkitLineClamp: isExpanded ? 'unset' : 2,
@@ -454,44 +482,32 @@ export default function StoresScreen({
               </span>
             </div>
 
-            {/* Price List Badge on Unexpanded Card */}
+            {/* Price list badge */}
             {(() => {
               const catInfo = getStoreCatalog(store);
               return (
-                <div style={{ marginTop: '5px' }}>
+                <div>
                   <span style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '4px',
-                    padding: '2px 7px',
+                    padding: '2px 8px',
                     borderRadius: '6px',
-                    background: 'rgba(39,162,67,0.12)',
-                    border: '1px solid rgba(39,162,67,0.3)',
+                    background: 'rgba(39,162,67,0.1)',
+                    border: '1px solid rgba(39,162,67,0.25)',
                     color: 'var(--primary-green)',
                     fontSize: '10px',
                     fontWeight: '700'
                   }}>
-                    📋 {catInfo.shortName} Price List ({catInfo.items.length} Items)
+                    📋 {catInfo.shortName} Price List ({catInfo.items.length} Items) <ChevronRight size={10} />
                   </span>
                 </div>
               );
             })()}
           </div>
 
-          {/* Rating + Chevron */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
-            {!isOpeningSoon && (
-              <div style={{
-                padding: '4px 8px',
-                borderRadius: '10px',
-                background: 'rgba(39,162,67,0.1)',
-                border: '1px solid rgba(39,162,67,0.3)',
-                textAlign: 'center'
-              }}>
-                <div style={{ fontSize: '14px', fontWeight: '800', color: ratingColor(store.rating), lineHeight: 1 }}>{store.rating}</div>
-                <div style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: '2px' }}>{store.reviews} reviews</div>
-              </div>
-            )}
+          {/* Chevron */}
+          <div style={{ alignSelf: 'center', flexShrink: 0, paddingLeft: '4px' }}>
             <ChevronRight size={16} color="var(--text-subtle)"
               style={{ transform: isExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.25s ease' }}
             />

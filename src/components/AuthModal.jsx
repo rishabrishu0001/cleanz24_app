@@ -829,37 +829,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
                       : <><SmsIcon /> Send SMS OTP <ArrowRight size={16} /></>}
                 </button>
 
-                {/* Reviewer Demo Account Chip */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '7px 12px',
-                  borderRadius: '10px',
-                  background: 'rgba(59, 130, 246, 0.08)',
-                  border: '1px dashed rgba(59, 130, 246, 0.3)',
-                  marginTop: '10px'
-                }}>
-                  <span style={{ fontSize: '11px', color: '#2563EB', fontWeight: '600' }}>
-                    🧪 Reviewer Demo: 9999999999 • OTP: 123456
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => { setPhone('9999999999'); setError(''); }}
-                    style={{
-                      fontSize: '11px',
-                      color: '#FFFFFF',
-                      background: '#2563EB',
-                      border: 'none',
-                      borderRadius: '6px',
-                      padding: '3px 8px',
-                      cursor: 'pointer',
-                      fontWeight: '700'
-                    }}
-                  >
-                    Use Demo
-                  </button>
-                </div>
+
               </form>
             )}
 

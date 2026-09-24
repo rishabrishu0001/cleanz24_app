@@ -539,17 +539,24 @@ export default function HomeScreen({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
           <div style={{
-            width: '38px',
-            height: '38px',
+            width: '44px',
+            height: '44px',
             borderRadius: '12px',
-            background: 'rgba(39, 162, 67, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--primary-green)',
-            flexShrink: 0
+            overflow: 'hidden',
+            border: '1px solid rgba(39, 162, 67, 0.25)',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+            flexShrink: 0,
+            background: '#F0FDF4'
           }}>
-            <MapPin size={20} />
+            <img 
+              src="/images/studio_front.jpg" 
+              alt="Nearest Studio" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = '/images/storefront_hero.jpg';
+              }}
+            />
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: '11px', color: 'var(--primary-green)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
