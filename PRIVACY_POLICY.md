@@ -1,6 +1,6 @@
 # Privacy Policy for Cleanz24
 
-**Last updated:** September 23, 2026
+**Last updated:** September 26, 2026
 
 Welcome to **Cleanz24 - Premium Laundry & Dry Cleaning** ("Cleanz24", "we", "our", or "us"). We are committed to protecting your privacy and ensuring your personal information is handled safely and responsibly.
 
@@ -49,7 +49,7 @@ We never sell or rent your personal data to third parties. We only share informa
 You have full control over your personal data:
 * **In-App Account Deletion:** You can delete your Cleanz24 account at any time directly inside the app by navigating to **Profile Screen → Delete Account & Personal Data**.
 * **Data Purging:** Upon account deletion, your profile, authentication records, saved addresses, and active sessions are permanently erased from our production databases.
-* You may also contact us at **support@cleanz24.com** to request manual data deletion.
+* You may also contact us at **happy2helpu@cleanz24.com** to request manual data deletion.
 
 ---
 
@@ -74,6 +74,6 @@ We may update this Privacy Policy from time to time. Any changes will be posted 
 ## 8. Contact Us
 
 If you have questions, feedback, or concerns regarding this Privacy Policy, please contact us:
-* **Email:** support@cleanz24.com
-* **App:** Cleanz24 Premium Laundry & Dry Cleaning
-* **Address:** Sector 41, Noida, Uttar Pradesh, India
+* **Email:** happy2helpu@cleanz24.com
+* **App:** Cleanz24 Laundry & Carspa
+* **Address:** Unit No. 2735, Astralis Super Nova, Sector 94, Noida, Uttar Pradesh 201301, India
