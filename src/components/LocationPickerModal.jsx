@@ -27,7 +27,7 @@ export default function LocationPickerModal({ currentLocation, onSelectLocation,
     },
     {
       id: "home_41", type: "Home", title: "Home", badge: "Frequently used",
-      address: "Gali no. 12 baba surdas, Sector 41, Noida",
+      address: "Sector 41, Noida, Uttar Pradesh",
       phone: "9138004800", lat: 28.5638, lng: 77.3627, icon: "home"
     }
   ]);
@@ -60,7 +60,7 @@ export default function LocationPickerModal({ currentLocation, onSelectLocation,
       try {
         const res = await fetch(
           "https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(searchQuery + ", India") + "&format=json&addressdetails=1&limit=6",
-          { headers: { "Accept-Language": "en" } }
+          { headers: { "Accept-Language": "en", "User-Agent": "Cleanz24-App/1.0.1 (happy2helpu@cleanz24.com)" } }
         );
         const data = await res.json();
         setSearchResults(data || []);
@@ -78,7 +78,7 @@ export default function LocationPickerModal({ currentLocation, onSelectLocation,
       try {
         const res = await fetch(
           "https://nominatim.openstreetmap.org/search?q=" + encodeURIComponent(mapSearchQuery + ", India") + "&format=json&addressdetails=1&limit=5",
-          { headers: { "Accept-Language": "en" } }
+          { headers: { "Accept-Language": "en", "User-Agent": "Cleanz24-App/1.0.1 (happy2helpu@cleanz24.com)" } }
         );
         const data = await res.json();
         setMapSearchResults(data || []);
@@ -91,16 +91,18 @@ export default function LocationPickerModal({ currentLocation, onSelectLocation,
   const reverseGeocode = async (lat, lng) => {
     const res = await fetch(
       "https://nominatim.openstreetmap.org/reverse?lat=" + lat + "&lon=" + lng + "&format=json&addressdetails=1",
-      { headers: { "Accept-Language": "en" } }
+      { headers: { "Accept-Language": "en", "User-Agent": "Cleanz24-App/1.0.1 (happy2helpu@cleanz24.com)" } }
     );
     const data = await res.json();
     return formatAddress(data.address, data.display_name);
   };
 
   const [autoFocusCorrection, setAutoFocusCorrection] = useState(false);
+  const [gpsError, setGpsError] = useState("");
 
   const handleGPS = () => {
-    if (!navigator.geolocation) { alert("Geolocation not supported."); return; }
+    setGpsError("");
+    if (!navigator.geolocation) { setGpsError("Geolocation not supported by device."); return; }
     setIsLocatingGPS(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -124,8 +126,8 @@ export default function LocationPickerModal({ currentLocation, onSelectLocation,
       },
       (err) => {
         setIsLocatingGPS(false);
-        if (err.code === 1) alert("Location access denied.\nPlease allow location in browser settings and try again.");
-        else alert("Could not detect location. Please search your address manually below.");
+        if (err.code === 1) setGpsError("Location permission denied. Please search your address manually below.");
+        else setGpsError("Could not detect location. Please search your address manually below.");
       },
       { timeout: 15000, enableHighAccuracy: true, maximumAge: 0 }
     );
@@ -448,6 +450,12 @@ export default function LocationPickerModal({ currentLocation, onSelectLocation,
             </div>
             <ChevronRight size={18} color="#16A34A" style={{ flexShrink: 0 }} />
           </div>
+          {gpsError && (
+            <div style={{ margin: "8px 16px", padding: "10px 14px", borderRadius: "10px", background: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.25)", color: "#DC2626", fontSize: "12px", fontWeight: "600", display: "flex", gap: "8px", alignItems: "center" }}>
+              <AlertCircle size={15} style={{ flexShrink: 0 }} />
+              <span>{gpsError}</span>
+            </div>
+          )}
           <div style={{ padding: "14px 16px 8px", fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", letterSpacing: "0.06em" }}>
             SAVED ADDRESSES
           </div>

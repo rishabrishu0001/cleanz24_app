@@ -3,15 +3,70 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Cleanz24 - Premier Laundry & Dry Cleaning Mobile App</title>
-    <meta name="description" content="Cleanz24 - Professional laundry, dry cleaning, and fabric care delivered to your doorstep within 24 hours. Schedule pickup online." />
+    <title>Cleanz24 - Laundry &amp; Carspa</title>
+    <meta name="description" content="Cleanz24 - Professional laundry, dry cleaning, and car spa delivered to your doorstep. Schedule pickup online." />
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      /* Inline loading screen — visible while 5MB JS bundle parses. Auto-hidden when React mounts. */
+      #cleanz-loader {
+        position: fixed; inset: 0; z-index: 99999;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        background: #ffffff;
+        font-family: 'Outfit', sans-serif;
+      }
+      #cleanz-loader .logo-box {
+        width: 72px; height: 72px; border-radius: 20px;
+        background: #16A34A;
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 18px;
+        box-shadow: 0 8px 28px rgba(22,163,74,0.35);
+      }
+      #cleanz-loader .logo-text { font-size: 28px; font-weight: 900; color: #fff; letter-spacing: -1px; }
+      #cleanz-loader .brand { font-size: 17px; font-weight: 800; color: #111827; margin-bottom: 4px; }
+      #cleanz-loader .tagline {
+        font-size: 11px; font-weight: 700; color: #16A34A;
+        letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 32px;
+      }
+      #cleanz-loader .spinner {
+        width: 32px; height: 32px;
+        border: 3px solid rgba(22,163,74,0.2);
+        border-top-color: #16A34A;
+        border-radius: 50%;
+        animation: cleanz-spin 0.8s linear infinite;
+      }
+      @keyframes cleanz-spin { to { transform: rotate(360deg); } }
+    </style>
   </head>
   <body>
+    <!-- Loading screen displayed until React mounts — prevents blank white screen on slow devices -->
+    <div id="cleanz-loader">
+      <div class="logo-box"><span class="logo-text">C</span></div>
+      <div class="brand">Cleanz24</div>
+      <div class="tagline">Laundry &amp; Carspa</div>
+      <div class="spinner"></div>
+    </div>
     <div id="root"></div>
+    <script>
+      // Auto-hide loader when React injects first child into #root
+      (function() {
+        var root = document.getElementById('root');
+        var loader = document.getElementById('cleanz-loader');
+        if (!root || !loader) return;
+        var obs = new MutationObserver(function() {
+          if (root.children.length > 0) {
+            loader.style.opacity = '0';
+            loader.style.transition = 'opacity 0.3s ease';
+            setTimeout(function() { loader && loader.remove(); }, 350);
+            obs.disconnect();
+          }
+        });
+        obs.observe(root, { childList: true });
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

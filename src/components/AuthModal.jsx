@@ -242,7 +242,7 @@ function OtpInput({ value, onChange }) {
 }
 
 /* ─── Main AuthModal ─────────────────────────────────────────────────────────── */
-export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin }) {
+export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin, onOpenLegal }) {
   const [authMode, setAuthMode] = useState('signup'); // 'signup' | 'login'
   const [step, setStep] = useState('form');           // 'form' | 'otp'
   const [otpChannel, setOtpChannel] = useState('whatsapp'); // 'whatsapp' | 'sms'
@@ -267,7 +267,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
   const [focused, setFocused] = useState('');
 
   const cleanPhone = phone.replace(/\D/g, '').slice(0, 10);
-  const isAdmin = cleanPhone === '9355395911';
+  const isAdmin = false;
   const maskedPhone = cleanPhone.length >= 4
     ? `+91 XXXXX ${cleanPhone.slice(-5)}`
     : '+91 XXXXXXXXXX';
@@ -335,10 +335,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
       setError('Please enter your full name.');
       return;
     }
-    if (isAdmin) {
-      if (!adminPwd) { setError('Enter your security password.'); return; }
-      if (adminPwd !== 'Cleanz24@1212') { setError('Incorrect security password.'); return; }
-    }
+
 
     const isReviewer = REVIEWER_TEST_PHONES.includes(cleanPhone);
 
@@ -845,6 +842,24 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
                 </button>
               )
             )}
+
+            {/* Legal Notice */}
+            <p style={{ fontSize: '11px', color: '#6B7280', margin: '10px 0 6px', textAlign: 'center', lineHeight: 1.4 }}>
+              By continuing, you agree to Cleanz24's{' '}
+              <span
+                onClick={() => { if (onOpenLegal) onOpenLegal('terms'); }}
+                style={{ textDecoration: 'underline', color: '#16A34A', cursor: 'pointer', fontWeight: '600' }}
+              >
+                Terms of Service
+              </span>{' '}
+              &amp;{' '}
+              <span
+                onClick={() => { if (onOpenLegal) onOpenLegal('privacy'); }}
+                style={{ textDecoration: 'underline', color: '#16A34A', cursor: 'pointer', fontWeight: '600' }}
+              >
+                Privacy Policy
+              </span>
+            </p>
 
             {/* Guest */}
             {!alreadyCustomer && (

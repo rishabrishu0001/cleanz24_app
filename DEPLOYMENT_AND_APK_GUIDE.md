@@ -57,11 +57,11 @@ Your project includes `render.yaml` for instant deployment.
 3. **Add Environment Variables**:
    Under the **Environment Variables** section, add:
    - `PORT`: `10000`
-   - `MONGODB_URI`: `mongodb+srv://rishabnegi333_db_user:rishabrishu1792004@clusterrishab.ukgyemv.mongodb.net/cleanz24_db?retryWrites=true&w=majority&appName=ClusterRishab`
-   - `FAST2SMS_API_KEY`: `4hedoxOSs9tzp6eDAnDC8x1nuveFVsJ2oWy0KwOYEYLK4tFMOlMtub1blzpH`
+   - `MONGODB_URI`: `mongodb+srv://<DB_USERNAME>:<DB_PASSWORD>@cluster0.example.mongodb.net/cleanz24_db?retryWrites=true&w=majority`
+   - `FAST2SMS_API_KEY`: `(Your Fast2SMS API Key from fast2sms.com/dev/bulkV2)`
    - `WHATSAPP_TOKEN`: `(Your token if using Meta WhatsApp)`
-   - `WHATSAPP_PHONE_ID`: `1232168166656706`
-   - `WHATSAPP_TEMPLATE_NAME`: `hello_world`
+   - `WHATSAPP_PHONE_ID`: `(Your WhatsApp Phone ID)`
+   - `WHATSAPP_TEMPLATE_NAME`: `cleanz24_app`
 
 4. **Click "Deploy Web Service"**:
    - Render will build and deploy your API in ~1 minute.

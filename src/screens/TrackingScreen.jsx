@@ -235,7 +235,7 @@ export default function TrackingScreen({ activeOrder, setOrdersHistory }) {
           <div style={{ display: 'flex', gap: '6px' }}>
             <button 
               className="btn-icon" 
-              onClick={() => alert(`Calling driver at ${orderState.driver?.phone}...`)}
+              onClick={() => { window.location.href = `tel:${orderState.driver?.phone || '+919138004800'}`; }}
               title="Call Driver"
               style={{ width: '36px', height: '36px', background: 'rgba(39, 162, 67, 0.18)', color: 'var(--primary-green)' }}
             >
@@ -243,7 +243,7 @@ export default function TrackingScreen({ activeOrder, setOrdersHistory }) {
             </button>
             <button 
               className="btn-icon" 
-              onClick={() => alert(`Messaging driver...`)}
+              onClick={() => { window.open(`https://wa.me/919138004800?text=${encodeURIComponent(`Hi, checking status of my Cleanz24 pickup order #${orderState.id || ''}`)}`, '_system'); }}
               title="Message Driver"
               style={{ width: '36px', height: '36px', background: 'rgba(39, 162, 67, 0.18)', color: 'var(--primary-green)' }}
             >

@@ -1,8 +1,8 @@
-# Privacy Policy for Cleanz24
+# Privacy Policy for Cleanz24 - Laundry & Carspa
 
 **Last updated:** September 26, 2026
 
-Welcome to **Cleanz24 - Premium Laundry & Dry Cleaning** ("Cleanz24", "we", "our", or "us"). We are committed to protecting your privacy and ensuring your personal information is handled safely and responsibly.
+Welcome to **Cleanz24 - Laundry & Carspa** ("Cleanz24", "we", "our", or "us"). We are committed to protecting your privacy and ensuring your personal information is handled safely and responsibly.
 
 This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and website services.
 

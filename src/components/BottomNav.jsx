@@ -29,7 +29,7 @@ export default function BottomNav({ activeTab, setActiveTab }) {
     }}>
       {tabs.map((tab) => {
         const Icon = tab.icon;
-        const isActive = activeTab === tab.id;
+        const isActive = activeTab === tab.id || (tab.id === 'profile' && activeTab === 'legal');
 
         return (
           <button

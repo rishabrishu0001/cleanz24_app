@@ -11,11 +11,28 @@ import AdminPanel from './screens/AdminPanel.jsx';
 import SupportChatModal from './components/SupportChatModal.jsx';
 import LocationPickerModal from './components/LocationPickerModal.jsx';
 import AuthModal from './components/AuthModal.jsx';
+import LegalScreen from './screens/LegalScreen.jsx';
 import OnboardingFlow from './components/OnboardingFlow.jsx';
 import LocationPermissionScreen from './components/LocationPermissionScreen.jsx';
 import api from './services/api.js';
 import { findNearestStore, getStudioKeyForStore } from './services/storeCatalogs.js';
 import { Smartphone, Monitor, ShieldCheck, X, Sun, Moon, Bell, CheckCheck, Trash2 } from 'lucide-react';
+
+/* ── In-App Toast Notification (replaces window.alert) ─────────────── */
+function InAppToast({ message, onClose }) {
+  useEffect(() => { const t = setTimeout(onClose, 5000); return () => clearTimeout(t); }, [onClose]);
+  return (
+    <div style={{
+      position: 'fixed', bottom: '90px', left: '50%', transform: 'translateX(-50%)',
+      zIndex: 9999, background: '#1E293B', color: '#F8FAFC',
+      padding: '12px 20px', borderRadius: '14px', fontSize: '13px', fontWeight: '600',
+      maxWidth: '90vw', textAlign: 'center', boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+      animation: 'authFadeIn 0.25s ease'
+    }}>
+      {message}
+    </div>
+  );
+}
 
 export default function App() {
   // Onboarding — disabled by default to avoid intrusive green screen
@@ -28,6 +45,10 @@ export default function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [userLocation, setUserLocation] = useState('Sector 94, Noida');
   const [userCoords, setUserCoords] = useState({ lat: 28.5445, lng: 77.3292 });
+
+  // In-App Toast (replaces window.alert — native alert causes ANR in Capacitor WebView)
+  const [toastMsg, setToastMsg] = useState('');
+  const showToast = (msg) => setToastMsg(msg);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
 
   // Auto-resolve nearest studio based on user's location (defaults to Noida 41, NOT Siwara!)
@@ -101,6 +122,19 @@ export default function App() {
       return;
     }
 
+    // Immediately update user state synchronously so UI & tabs reflect logged-in state without delay
+    const immediateUser = {
+      ...userData,
+      name: userData.name || 'Customer',
+      isLoggedIn: true,
+      isGuest: false
+    };
+    setCurrentUser(immediateUser);
+    localStorage.setItem('cleanz24_user', JSON.stringify(immediateUser));
+    setShowAuthModal(false);
+    setActiveTab('home');
+
+    // Background sync with API (resilient against network latency)
     try {
       const res = await api.auth.login(userData);
       const user = res.user || userData;
@@ -119,20 +153,11 @@ export default function App() {
         handleLocationSelect(addr.address, addr.lat && addr.lng ? { lat: addr.lat, lng: addr.lng } : null);
       }
     } catch {
-      const fallbackUser = {
-        ...userData,
-        name: userData.name || 'Customer',
-        isLoggedIn: true,
-        isGuest: false
-      };
-      setCurrentUser(fallbackUser);
-      localStorage.setItem('cleanz24_user', JSON.stringify(fallbackUser));
+      // immediateUser already applied
     }
     if (userData.address) {
       handleLocationSelect(userData.address);
     }
-    setShowAuthModal(false);
-    setActiveTab('home');
   };
 
   const handleLogout = () => {
@@ -167,7 +192,7 @@ export default function App() {
       });
       setActiveTab('profile');
       setShowAuthModal(false);
-      window.alert('Aapka account administrator dwaara delete kar diya gaya hai. Kripya naye user ki tarah register karein.');
+      showToast('Your account has been removed. Please register again to continue.');
     };
 
     const verifySession = async () => {
@@ -178,11 +203,13 @@ export default function App() {
           handleForceLogout();
         }
       } catch (err) {
-        if (err.message && (err.message.includes('404') || err.message.includes('deleted') || err.message.includes('not exist') || err.message.includes('not found'))) {
-          if (isMounted) {
-            console.warn('[Cleanz24] User deleted in backend. Auto-logging out...');
-            handleForceLogout();
-          }
+        // Only force-logout on definitive 404/deleted errors — ignore network timeouts and server errors
+        const msg = err.message || '';
+        const isDefinitelyDeleted = msg.includes('404') || msg.includes('deleted') || msg.includes('not exist') || msg.includes('not found');
+        const isNetworkError = msg.includes('timeout') || msg.includes('fetch') || msg.includes('network') || msg.includes('500');
+        if (isDefinitelyDeleted && !isNetworkError && isMounted) {
+          console.warn('[Cleanz24] User deleted in backend. Auto-logging out...');
+          handleForceLogout();
         }
       }
     };
@@ -190,8 +217,8 @@ export default function App() {
     // 1. Initial check
     verifySession();
 
-    // 2. Periodic heartbeat check every 10 seconds
-    const heartbeatTimer = setInterval(verifySession, 10000);
+    // 2. Periodic heartbeat check every 60 seconds (was 10s — too aggressive, caused Render cold-start auto-logouts)
+    const heartbeatTimer = setInterval(verifySession, 60000);
 
     // 3. Check when user switches to or wakes up the app
     const handleVisibility = () => {
@@ -223,24 +250,8 @@ export default function App() {
   }, [currentUser?.id, currentUser?.phone, currentUser?.isLoggedIn]);
 
   // Application Data States (Prices in Indian Rupees - Rs.)
-  const [cart, setCart] = useState({
-    'wf_bag': {
-      id: 'wf_bag',
-      name: 'Standard Wash & Fold Bag',
-      price: 49,
-      unit: '/ kg',
-      quantity: 5,
-      image: '/images/hero.jpg'
-    },
-    'dc_suit': {
-      id: 'dc_suit',
-      name: '2-Piece Men / Women Suit',
-      price: 399,
-      unit: '/ suit',
-      quantity: 1,
-      image: '/images/drycleaning.jpg'
-    }
-  });
+  // Cart starts empty — no pre-filled demo items for real users
+  const [cart, setCart] = useState({});
 
   const [activeOrder, setActiveOrder] = useState(null);
 
@@ -253,14 +264,14 @@ export default function App() {
   const DEFAULT_NOTIFICATIONS = [
     {
       id: 1,
-      title: 'Valet Assigned for Doorstep Pickup 🛵',
-      text: 'Ramesh Kumar (Cleanz Valet #14) is en route to collect your garments from Sector 94, Noida.',
-      time: '5m ago',
+      title: 'Welcome to Cleanz24! 🌿',
+      text: 'Experience premium eco-friendly dry cleaning & laundry with free doorstep pickup and 24h express delivery.',
+      time: 'Just now',
       unread: true,
-      badge: 'Pickup',
+      badge: 'Welcome',
       badgeColor: '#10B981',
-      actionTab: 'orders',
-      actionText: 'Track Valet →'
+      actionTab: 'services',
+      actionText: 'Explore Services →'
     },
     {
       id: 2,
@@ -271,12 +282,12 @@ export default function App() {
       badge: 'New Store',
       badgeColor: '#F59E0B',
       actionTab: 'stores',
-      actionText: 'View Studio →'
+      actionText: 'View Studios →'
     },
     {
       id: 3,
-      title: 'Flat 20% OFF Promo Applied 🎁',
-      text: 'Promo code CLEANZ20 applied successfully! Saved ₹120 on your dry cleaning order.',
+      title: 'Flat 20% OFF with Promo CLEANZ20 🎁',
+      text: 'Use promo code CLEANZ20 at checkout for an instant 20% discount on all garment dry cleaning & wash care.',
       time: '2h ago',
       unread: false,
       badge: 'Offer',
@@ -286,25 +297,14 @@ export default function App() {
     },
     {
       id: 4,
-      title: 'Steam Press & QC Passed 👔',
-      text: 'Your garments have cleared Italian 3-stage steam pressing and fabric sanitization checks.',
-      time: 'Yesterday',
+      title: 'Gentle Eco Care Guarantee 💧',
+      text: 'We use 100% biodegradable detergents and German sanitization equipment for spotless, safe fabric care.',
+      time: '1 day ago',
       unread: false,
-      badge: 'QC Passed',
+      badge: 'Eco Care',
       badgeColor: '#3B82F6',
-      actionTab: 'orders',
-      actionText: 'View Order →'
-    },
-    {
-      id: 5,
-      title: '₹150 Wallet Bonus Credited 💰',
-      text: 'Welcome cash bonus credited to your Cleanz24 Wallet. Use it for your next booking.',
-      time: '2 days ago',
-      unread: false,
-      badge: 'Cashback',
-      badgeColor: '#8B5CF6',
-      actionTab: 'wallet',
-      actionText: 'Open Wallet →'
+      actionTab: 'home',
+      actionText: 'Learn More →'
     }
   ];
 
@@ -328,7 +328,11 @@ export default function App() {
   const handleNotificationClick = (n) => {
     setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, unread: false } : item));
     if (n.actionTab) {
-      setActiveTab(n.actionTab);
+      if (['home', 'services', 'stores', 'wallet', 'profile', 'legal'].includes(n.actionTab)) {
+        setActiveTab(n.actionTab);
+      } else {
+        setActiveTab('home');
+      }
     }
     setShowNotifications(false);
   };
@@ -407,7 +411,8 @@ export default function App() {
         <OnboardingFlow onComplete={() => setShowOnboarding(false)} />
       )}
       
-      {/* Top Device Switcher Bar for Web Preview */}
+      {/* Top Device Switcher Bar — DEV ONLY, hidden in production APK */}
+      {import.meta.env.DEV && (
       <div className={`view-control-bar ${expandedView ? 'expanded' : ''}`}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
           <span style={{ color: 'var(--primary-green)' }}>
@@ -522,6 +527,7 @@ export default function App() {
           )}
         </div>
       </div>
+      )}{/* end DEV only toolbar */}
 
       {/* Main Mobile Device Shell / Frame */}
       <div 
@@ -564,17 +570,21 @@ export default function App() {
             {/* Screen Content Container */}
             <main className="screen-content">
               {!isUserEntered ? (
-                <ProfileScreen 
-                  onOpenChat={() => setShowSupportChat(true)}
-                  onStartBooking={() => setShowBookingModal(true)}
-                  onOpenAdmin={() => setShowAdminPanel(true)}
-                  currentUser={currentUser}
-                  setCurrentUser={setCurrentUser}
-                  onLogout={handleLogout}
-                  onOpenAuthModal={() => setActiveTab('profile')}
-                  onLoginSuccess={handleLoginSuccess}
-                  onNavigateTab={setActiveTab}
-                />
+                activeTab === 'legal' ? (
+                  <LegalScreen onBack={() => setActiveTab('profile')} />
+                ) : (
+                  <ProfileScreen 
+                    onOpenChat={() => setShowSupportChat(true)}
+                    onStartBooking={() => setShowBookingModal(true)}
+                    onOpenAdmin={() => setShowAdminPanel(true)}
+                    currentUser={currentUser}
+                    setCurrentUser={setCurrentUser}
+                    onLogout={handleLogout}
+                    onOpenAuthModal={() => setActiveTab('profile')}
+                    onLoginSuccess={handleLoginSuccess}
+                    onNavigateTab={setActiveTab}
+                  />
+                )
               ) : (
                 <>
                   {activeTab === 'home' && (
@@ -646,6 +656,10 @@ export default function App() {
                       onLoginSuccess={handleLoginSuccess}
                       onNavigateTab={setActiveTab}
                     />
+                  )}
+
+                  {activeTab === 'legal' && (
+                    <LegalScreen onBack={() => setActiveTab('profile')} />
                   )}
                 </>
               )}
@@ -924,6 +938,10 @@ export default function App() {
             setShowAuthModal(false);
             setShowAdminPanel(true);
           }}
+          onOpenLegal={() => {
+            setShowAuthModal(false);
+            setActiveTab('legal');
+          }}
         />
 
         {/* Mobile Bottom Navigation Bar */}
@@ -938,6 +956,11 @@ export default function App() {
         )}
 
       </div>
+
+      {/* In-App Toast Notification */}
+      {toastMsg && (
+        <InAppToast message={toastMsg} onClose={() => setToastMsg('')} />
+      )}
     </div>
   );
 }

@@ -24,7 +24,7 @@ export const DEFAULT_STUDIO_PRICE_ITEMS = [
   { id: 'p_9', name: 'Blackout Window Curtains', service: 'Dry Clean', serviceKey: 'dry_clean', category: 'dry_clean', audience: 'Household', price: 149, unit: '/ panel', desc: 'Dust & stain extraction dry cleaning' }
 ];
 
-export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, initialAuthenticated = true }) {
+export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, initialAuthenticated = false }) {
   // ── Authentication & Security Gate State ────────────────────────────────────
   const [isAuthenticated, setIsAuthenticated] = useState(initialAuthenticated);
   const [enteredPin, setEnteredPin] = useState('');
@@ -35,27 +35,19 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
   const [selectedStudio, setSelectedStudio] = useState('All Stores');
   const [activeTab, setActiveTab] = useState('overview'); // overview | orders | stores | franchise | pricing | fleet
 
-  // ── Credentials / PIN Database ─────────────────────────────────────────────
-  const MASTER_PASSWORDS = ['9999', 'CLEANZ@HQ2026', 'admin999', 'Cleanz24@1212'];
+  // ── Admin PIN ──────────────────────────────────────────────────────────────
+  const ADMIN_PIN = '9999';
 
   // Handle PIN Login Verification
   const handleVerifyLogin = (e) => {
     if (e) e.preventDefault();
     setAuthError('');
-
-    if (MASTER_PASSWORDS.includes(enteredPin) || enteredPin === '9999') {
+    if (enteredPin === ADMIN_PIN) {
       setIsAuthenticated(true);
       setEnteredPin('');
     } else {
-      setAuthError('❌ Invalid Admin Passcode! (Default: 9999)');
+      setAuthError('❌ Invalid Admin Passcode. Please try again.');
     }
-  };
-
-  // Instant 1-Tap Unlock Helper
-  const handleInstantUnlock = () => {
-    setAuthError('');
-    setIsAuthenticated(true);
-    setEnteredPin('');
   };
 
   // Handle On-Screen Keypad Tap
@@ -69,12 +61,10 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
       if (enteredPin.length < 6) {
         const nextPin = enteredPin + val;
         setEnteredPin(nextPin);
-        // Auto submit if 4 digits
-        if (nextPin.length === 4) {
-          if (MASTER_PASSWORDS.includes(nextPin) || nextPin === '9999') {
-            setIsAuthenticated(true);
-            setEnteredPin('');
-          }
+        // Auto submit if 4 digits match admin PIN
+        if (nextPin.length === 4 && nextPin === ADMIN_PIN) {
+          setIsAuthenticated(true);
+          setEnteredPin('');
         }
       }
     }
@@ -384,7 +374,7 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
   const handleSaveOpening = async (e) => {
     if (e) e.preventDefault();
     if (!openingFormData.storeName.trim() || !openingFormData.address.trim() || !openingFormData.openingDate.trim()) {
-      alert('Please enter Store Name, Address, and Opening Date');
+      setOpeningActionMsg('⚠️ Please enter Store Name, Address, and Opening Date');
       return;
     }
 
@@ -406,7 +396,7 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
       setEditingOpening(null);
     } catch (err) {
       console.error('Error saving grand opening:', err.message);
-      alert(`Failed to save: ${err.message}`);
+      setOpeningActionMsg(`❌ Failed to save: ${err.message}`);
     } finally {
       setIsSubmittingOpening(false);
       setTimeout(() => setOpeningActionMsg(''), 4000);
@@ -511,7 +501,8 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
       }
       setEditingUser(null);
     } catch (err) {
-      alert(`Error updating customer: ${err.message}`);
+      setUserActionMsg(`❌ Error updating customer: ${err.message}`);
+      setTimeout(() => setUserActionMsg(''), 5000);
     } finally {
       setIsSavingUser(false);
     }
@@ -536,7 +527,8 @@ export default function AdminPanel({ onExitToApp, darkMode = true, setDarkMode, 
       setTimeout(() => setUserActionMsg(''), 6000);
       setUserToDelete(null);
     } catch (err) {
-      alert(`Error deleting customer: ${err.message}`);
+      setUserActionMsg(`❌ Error deleting customer: ${err.message}`);
+      setTimeout(() => setUserActionMsg(''), 5000);
     } finally {
       setIsDeletingUser(false);
     }

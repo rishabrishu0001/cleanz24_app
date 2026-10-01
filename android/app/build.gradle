@@ -7,8 +7,8 @@ android {
         applicationId "com.cleanz24.laundrycarspa"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "1.0.1"
+        versionCode 3
+        versionName "1.0.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -19,9 +19,9 @@ android {
     signingConfigs {
         release {
             storeFile file('cleanz24-release.keystore')
-            storePassword 'cleanz24pass'
-            keyAlias 'cleanz24'
-            keyPassword 'cleanz24pass'
+            storePassword System.getenv("CLEANZ_KEYSTORE_PASSWORD") ?: 'cleanz24pass'
+            keyAlias System.getenv("CLEANZ_KEY_ALIAS") ?: 'cleanz24'
+            keyPassword System.getenv("CLEANZ_KEY_PASSWORD") ?: 'cleanz24pass'
         }
     }
     buildTypes {

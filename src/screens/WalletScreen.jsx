@@ -4,6 +4,11 @@ import {
 } from 'lucide-react';
 
 export default function WalletScreen({ onStartBooking }) {
+  const openWhatsApp = (msg) => {
+    const url = `https://wa.me/919138004800?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_system');
+  };
+
   return (
     <div className="animate-fade-in" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
@@ -78,19 +83,20 @@ export default function WalletScreen({ onStartBooking }) {
             ))}
           </div>
 
-          <a
-            href={`https://wa.me/919138004800?text=${encodeURIComponent('Hello Cleanz24, I want to subscribe to the Silver Saver membership plan (₹1,999/month, 15% off). Please share details.')}`}
-            target="_blank" rel="noreferrer"
+          <button
+            type="button"
+            onClick={() => openWhatsApp('Hello Cleanz24, I want to subscribe to the Silver Saver membership plan (₹1,999/month, 15% off). Please share details.')}
             style={{
+              width: '100%',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               padding: '11px', borderRadius: '12px',
               background: 'rgba(148,163,184,0.15)', border: '1.5px solid rgba(148,163,184,0.5)',
               color: '#CBD5E1', fontSize: '13px', fontWeight: '700',
-              textDecoration: 'none'
+              cursor: 'pointer'
             }}
           >
             <MessageCircle size={15} /> Subscribe via WhatsApp
-          </a>
+          </button>
         </div>
 
         {/* Gold Executive */}
@@ -154,19 +160,20 @@ export default function WalletScreen({ onStartBooking }) {
             ))}
           </div>
 
-          <a
-            href={`https://wa.me/919138004800?text=${encodeURIComponent('Hello Cleanz24, I want to subscribe to the Gold Executive membership plan (₹4,999/month, 20% off). Please share details.')}`}
-            target="_blank" rel="noreferrer"
+          <button
+            type="button"
+            onClick={() => openWhatsApp('Hello Cleanz24, I want to subscribe to the Gold Executive membership plan (₹4,999/month, 20% off). Please share details.')}
             style={{
+              width: '100%',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               padding: '11px', borderRadius: '12px',
               background: 'linear-gradient(135deg, #F59E0B, #D97706)',
               color: '#FFF', fontSize: '13px', fontWeight: '700',
-              textDecoration: 'none', boxShadow: '0 4px 14px rgba(245,158,11,0.35)'
+              cursor: 'pointer', border: 'none', boxShadow: '0 4px 14px rgba(245,158,11,0.35)'
             }}
           >
             <MessageCircle size={15} /> Subscribe via WhatsApp
-          </a>
+          </button>
         </div>
 
         {/* Platinum Unlimited */}
@@ -222,19 +229,20 @@ export default function WalletScreen({ onStartBooking }) {
             ))}
           </div>
 
-          <a
-            href={`https://wa.me/919138004800?text=${encodeURIComponent('Hello Cleanz24, I want to subscribe to the Platinum Unlimited membership plan (₹9,999/month, 25% off). Please share details.')}`}
-            target="_blank" rel="noreferrer"
+          <button
+            type="button"
+            onClick={() => openWhatsApp('Hello Cleanz24, I want to subscribe to the Platinum Unlimited membership plan (₹9,999/month, 25% off). Please share details.')}
             style={{
+              width: '100%',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
               padding: '11px', borderRadius: '12px',
               background: 'linear-gradient(135deg, #7C3AED, #8B5CF6)',
               color: '#FFF', fontSize: '13px', fontWeight: '700',
-              textDecoration: 'none', boxShadow: '0 4px 14px rgba(139,92,246,0.4)'
+              cursor: 'pointer', border: 'none', boxShadow: '0 4px 14px rgba(139,92,246,0.4)'
             }}
           >
             <MessageCircle size={15} /> Subscribe via WhatsApp
-          </a>
+          </button>
         </div>
 
       </div>

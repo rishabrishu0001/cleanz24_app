@@ -8,6 +8,7 @@ import {
   UserCheck, Zap, Sparkles, Mail
 } from 'lucide-react';
 import api from '../services/api.js';
+import LegalScreen from './LegalScreen.jsx';
 
 const RISHAB_ADDRESSES = [
   { id: 1, label: 'Home', icon: 'home', address: 'Sector 41, Noida, C Block Market, UP 201303' },
@@ -82,7 +83,13 @@ function AddressForm({ draft, setDraft, onSave, onCancel }) {
 
 export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, setCurrentUser, onLogout, onOpenAuthModal, onLoginSuccess, onNavigateTab }) {
   // ── Unified Modern Auth State (Blinkit / Zomato / Amazon flow) ──────────────
-  const [isLoggedIn, setIsLoggedIn] = useState(currentUser ? !!currentUser.isLoggedIn : false);
+  const getPersistedUser = () => {
+    try {
+      return JSON.parse(localStorage.getItem('cleanz24_user') || 'null');
+    } catch { return null; }
+  };
+  const effectiveUser = (currentUser && (currentUser.isLoggedIn || currentUser.isGuest)) ? currentUser : getPersistedUser();
+  const [isLoggedIn, setIsLoggedIn] = useState(!!effectiveUser?.isLoggedIn);
   const [authStep, setAuthStep] = useState('phone'); // 'phone' | 'otp' | 'name'
   const [phone, setPhone] = useState('');
   const [otpInput, setOtpInput] = useState('');
@@ -153,18 +160,19 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
   const [addressDraft, setAddressDraft] = useState({ label: '', icon: 'home', address: '' });
 
   useEffect(() => {
-    if (currentUser) {
-      setIsLoggedIn(!!currentUser.isLoggedIn);
+    const userToSync = (currentUser && (currentUser.isLoggedIn || currentUser.isGuest)) ? currentUser : getPersistedUser();
+    if (userToSync) {
+      setIsLoggedIn(!!userToSync.isLoggedIn);
       setProfile({
-        name: currentUser.name || '',
-        phone: currentUser.phone || '',
-        email: currentUser.email || ''
+        name: userToSync.name || '',
+        phone: userToSync.phone || '',
+        email: userToSync.email || ''
       });
 
       // Individual user address isolation
-      if (currentUser.isLoggedIn) {
-        const isRishab = currentUser.phone && currentUser.phone.includes('9310590680');
-        let userAddrs = Array.isArray(currentUser.addresses) ? [...currentUser.addresses] : [];
+      if (userToSync.isLoggedIn) {
+        const isRishab = userToSync.phone && userToSync.phone.includes('9310590680');
+        let userAddrs = Array.isArray(userToSync.addresses) ? [...userToSync.addresses] : [];
         if (!isRishab) {
           // Strictly purge Rishab's hardcoded addresses from any other user's profile
           userAddrs = userAddrs.filter(a =>
@@ -230,7 +238,8 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
       setDeleteSuccessMsg('Your Cleanz24 account and data have been permanently deleted in accordance with App Store & Google Play privacy policies.');
       setTimeout(() => setDeleteSuccessMsg(''), 8000);
     } catch (err) {
-      alert(err.message || 'Failed to delete account. Please try again.');
+      setDeleteSuccessMsg(`Failed to delete account: ${err.message || 'Please contact happy2helpu@cleanz24.com'}`);
+      setTimeout(() => setDeleteSuccessMsg(''), 8000);
     } finally {
       setIsDeletingAccount(false);
     }
@@ -375,16 +384,15 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
       return;
     }
 
-    // Stealth Admin verification: 9355395911 requires Cleanz24@1212
-    if (cleanPhone === '9355395911') {
-      if (!adminSecretPassword) {
-        setOtpError('Please enter your security password.');
-        return;
-      }
-      if (adminSecretPassword !== 'Cleanz24@1212') {
-        setOtpError('Incorrect security password. Please re-enter.');
-        return;
-      }
+
+
+    // Google Play / App Store Reviewer test phone: instant OTP transition with zero network wait!
+    const REVIEWER_TEST_PHONES = ['9999999999', '9876543210', '8888888888', '1234567890', '9123456789'];
+    if (REVIEWER_TEST_PHONES.includes(cleanPhone)) {
+      setAuthStep('otp');
+      setResendTimer(30);
+      setOtpInput('');
+      return;
     }
 
     setIsSendingOtp(true);
@@ -422,6 +430,31 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
     setIsVerifying(true);
     setOtpError('');
     const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+
+    // App Store & Google Play Reviewer instant bypass
+    const REVIEWER_TEST_PHONES = ['9999999999', '9876543210', '8888888888', '1234567890', '9123456789'];
+    if (REVIEWER_TEST_PHONES.includes(cleanPhone) && ['123456', '1234', '941200'].includes(otpInput.trim())) {
+      const demoUser = {
+        id: 'usr_reviewer_' + cleanPhone,
+        name: 'App Store Reviewer',
+        phone: `+91 ${cleanPhone}`,
+        email: 'reviewer@cleanz24.com',
+        role: 'customer',
+        walletBalance: 250,
+        addresses: [{
+          id: 'addr_reviewer_1',
+          title: 'Home',
+          badge: 'Default',
+          address: 'Tower 4, Sector 41, Noida, Uttar Pradesh 201303',
+          phone: `+91 ${cleanPhone}`,
+          type: 'home'
+        }],
+        isLoggedIn: true
+      };
+      finishLogin(demoUser);
+      setIsVerifying(false);
+      return;
+    }
 
     // Stealth Admin entry
     if (cleanPhone === '9355395911') {
@@ -556,7 +589,7 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
   // ── LOGGED OUT SCREEN (Blinkit / Zomato Flow) ───────────────────────────────
   if (!isLoggedIn) {
     const cleanPhone = phone.replace(/\D/g, '').slice(-10);
-    const isSpecialPhone = cleanPhone === '9355395911';
+    const isSpecialPhone = false;
 
     return (
       <div className="animate-fade-in" style={{ 
@@ -917,8 +950,19 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
             {/* Microcopy: Legal & Terms */}
             <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '4px 0 8px', lineHeight: 1.4 }}>
               By continuing, you agree to Cleanz24's{' '}
-              <span style={{ textDecoration: 'underline', color: 'var(--text-main)', cursor: 'pointer' }}>Terms of Service</span> &amp;{' '}
-              <span style={{ textDecoration: 'underline', color: 'var(--text-main)', cursor: 'pointer' }}>Privacy Policy</span>
+              <span
+                onClick={() => { if (onNavigateTab) onNavigateTab('legal'); else setActiveSettingsModal('legal'); }}
+                style={{ textDecoration: 'underline', color: 'var(--primary-green)', cursor: 'pointer', fontWeight: '600' }}
+              >
+                Terms of Service
+              </span>{' '}
+              &amp;{' '}
+              <span
+                onClick={() => { if (onNavigateTab) onNavigateTab('legal'); else setActiveSettingsModal('legal'); }}
+                style={{ textDecoration: 'underline', color: 'var(--primary-green)', cursor: 'pointer', fontWeight: '600' }}
+              >
+                Privacy Policy
+              </span>
             </p>
 
             {/* Skip & Explore as Guest Button */}
@@ -1446,13 +1490,25 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
             title: '24h Drop-Off Locker PIN',
             subtitle: `Digital locker keycode: #${lockerPin}`
           },
-
+          {
+            key: 'legal',
+            icon: ShieldCheck,
+            title: 'Privacy Policy & Terms of Service',
+            subtitle: 'Data protection & happy2helpu@cleanz24.com'
+          }
         ].map((pref, idx) => {
           const IconComp = pref.icon;
           return (
             <div
               key={idx}
-              onClick={() => setActiveSettingsModal(pref.key)}
+              onClick={() => {
+                if (pref.key === 'legal') {
+                  if (onNavigateTab) onNavigateTab('legal');
+                  else setActiveSettingsModal('legal');
+                } else {
+                  setActiveSettingsModal(pref.key);
+                }
+              }}
               className="interactive"
               style={{
                 display: 'flex',
@@ -1528,6 +1584,15 @@ export default function ProfileScreen({ onOpenChat, onOpenAdmin, currentUser, se
       >
         <Trash2 size={13} /> Delete Account &amp; Personal Data
       </button>
+
+      {/* ── LEGAL & PRIVACY SCREEN MODAL ────────────────────────────────────── */}
+      {activeSettingsModal === 'legal' && (
+        <div className="modal-overlay" style={{ zIndex: 2500 }}>
+          <div className="bottom-sheet animate-fade-in" style={{ padding: '0', maxHeight: '90vh', overflowY: 'auto' }}>
+            <LegalScreen onBack={() => setActiveSettingsModal(null)} />
+          </div>
+        </div>
+      )}
 
       {/* ── 1. NOTIFICATION SETTINGS MODAL ───────────────────────────────────── */}
       {activeSettingsModal === 'notifications' && (

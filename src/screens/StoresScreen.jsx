@@ -322,7 +322,7 @@ export default function StoresScreen({
         try {
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,
-            { headers: { 'Accept-Language': 'en' } }
+            { headers: { 'Accept-Language': 'en', 'User-Agent': 'Cleanz24-App/1.0.1 (happy2helpu@cleanz24.com)' } }
           );
           const data = await res.json();
           const addr = data.address || {};

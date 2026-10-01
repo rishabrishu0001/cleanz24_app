@@ -6,7 +6,7 @@ async function reverseGeocode(lat, lng) {
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=16`,
-      { headers: { 'Accept-Language': 'en' } }
+      { headers: { 'Accept-Language': 'en', 'User-Agent': 'Cleanz24-App/1.0.1 (happy2helpu@cleanz24.com)' } }
     );
     if (!res.ok) throw new Error('nominatim failed');
     const data = await res.json();
@@ -26,7 +26,7 @@ async function searchAddresses(query) {
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(query)}&countrycodes=in&limit=6&addressdetails=1`,
-      { headers: { 'Accept-Language': 'en' } }
+      { headers: { 'Accept-Language': 'en', 'User-Agent': 'Cleanz24-App/1.0.1 (happy2helpu@cleanz24.com)' } }
     );
     const data = await res.json();
     return data.map(r => ({

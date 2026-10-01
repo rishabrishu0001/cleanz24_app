@@ -212,8 +212,10 @@ router.post("/verify-whatsapp-otp", async (req, res) => {
   const cleanPhone = phone.replace(/\D/g, "").slice(-10);
   const record = otpStore.get(cleanPhone);
 
-  // Validate OTP (allow test OTP 1234, 123456 or matching active OTP)
-  const isMatch = (record && record.otp === String(otp).trim() && Date.now() < record.expiresAt) || String(otp).trim() === "1234" || String(otp).trim() === "123456" || String(otp).trim() === "941200";
+  // Validate OTP: Real accounts require matching active OTP; Reviewers can use test OTPs
+  const isReviewer = isReviewerPhone(cleanPhone);
+  const isMatch = (record && record.otp === String(otp).trim() && Date.now() < record.expiresAt) ||
+                  (isReviewer && (String(otp).trim() === "1234" || String(otp).trim() === "123456" || String(otp).trim() === "941200"));
 
   if (!isMatch) {
     return res.status(400).json({ error: "Invalid or expired verification code" });
@@ -343,11 +345,10 @@ router.post("/verify-sms-otp", async (req, res) => {
   const cleanPhone = phone.replace(/\D/g, "").slice(-10);
   const record = otpStore.get(cleanPhone);
 
-  // Validate OTP (allow test OTP 1234, 123456, 941200 or matching active OTP)
+  // Validate OTP: Real accounts require matching active OTP; Reviewers can use test OTPs
+  const isReviewer = isReviewerPhone(cleanPhone);
   const isMatch = (record && record.otp === String(otp).trim() && Date.now() < record.expiresAt) ||
-                  String(otp).trim() === "1234" ||
-                  String(otp).trim() === "123456" ||
-                  String(otp).trim() === "941200";
+                  (isReviewer && (String(otp).trim() === "1234" || String(otp).trim() === "123456" || String(otp).trim() === "941200"));
 
   if (!isMatch) {
     return res.status(400).json({ error: "Invalid or expired verification code" });
