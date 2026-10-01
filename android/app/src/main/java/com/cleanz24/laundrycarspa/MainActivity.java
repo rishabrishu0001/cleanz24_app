@@ -1,4 +1,4 @@
-package com.cleanz24.app;
+package com.cleanz24.laundrycarspa;
 
 import com.getcapacitor.BridgeActivity;
 
