@@ -346,6 +346,26 @@ export default function App() {
     }
   }, [darkMode]);
 
+  // ── Backend Warm-Up Ping ───────────────────────────────────────────────────
+  // Silently wakes up the Render backend on app launch so it is fully ready
+  // before the user taps Login / Send OTP. Without this, cold-start latency
+  // (~15s on free tier, ~2s on Starter) can cause ANR/crash on first API call.
+  useEffect(() => {
+    const warmup = async () => {
+      try {
+        await fetch(`https://cleanz24-app.onrender.com/api/health`, {
+          method: 'GET',
+          signal: AbortSignal.timeout?.(15000) || (() => { const c = new AbortController(); setTimeout(() => c.abort(), 15000); return c.signal; })()
+        });
+        console.log('[Cleanz24] Backend warmed up successfully.');
+      } catch {
+        // Silent — warm-up failure does not affect UX
+        console.log('[Cleanz24] Backend warm-up ping skipped (offline or already active).');
+      }
+    };
+    warmup();
+  }, []); // Run only once on mount
+
   // Fetch initial active order from backend
   useEffect(() => {
     api.orders.getActive(currentUser?.id)

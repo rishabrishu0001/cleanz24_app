@@ -846,19 +846,23 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
             {/* Legal Notice */}
             <p style={{ fontSize: '11px', color: '#6B7280', margin: '10px 0 6px', textAlign: 'center', lineHeight: 1.4 }}>
               By continuing, you agree to Cleanz24's{' '}
-              <span
-                onClick={() => { if (onOpenLegal) onOpenLegal('terms'); }}
+              <a
+                href="https://www.cleanz24.com/best-laundry-drycleaning/terms-of-service"
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{ textDecoration: 'underline', color: '#16A34A', cursor: 'pointer', fontWeight: '600' }}
               >
                 Terms of Service
-              </span>{' '}
+              </a>{' '}
               &amp;{' '}
-              <span
-                onClick={() => { if (onOpenLegal) onOpenLegal('privacy'); }}
+              <a
+                href="https://www.cleanz24.com/best-laundry-drycleaning/privacy-policy"
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{ textDecoration: 'underline', color: '#16A34A', cursor: 'pointer', fontWeight: '600' }}
               >
                 Privacy Policy
-              </span>
+              </a>
             </p>
 
             {/* Guest */}

@@ -29,10 +29,10 @@ const API_ORIGIN = resolveApiOrigin();
 const BASE_URL = API_ORIGIN ? `${API_ORIGIN}/api` : '/api';
 
 async function fetchJSON(endpoint, options = {}) {
-  // 10-second timeout prevents the app from hanging when Render backend is cold-starting.
-  // A hanging fetch in a Capacitor WebView can trigger the Android ANR watchdog → crash.
+  // 20-second timeout: enough for any Render plan to respond (cold-start max ~15s on Starter).
+  // A hanging fetch in a Capacitor WebView triggers the Android ANR watchdog → crash dialog.
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
   try {
     const res = await fetch(`${BASE_URL}${endpoint}`, {
       headers: {
@@ -50,7 +50,9 @@ async function fetchJSON(endpoint, options = {}) {
     return await res.json();
   } catch (error) {
     clearTimeout(timeoutId);
-    const msg = error.name === 'AbortError' ? 'Request timed out (server may be starting up, please retry)' : error.message;
+    const msg = error.name === 'AbortError'
+      ? 'Connection timed out. Please check your internet and try again.'
+      : error.message;
     console.warn(`API Error [${endpoint}]:`, msg);
     throw new Error(msg);
   }

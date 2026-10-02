@@ -78,7 +78,7 @@ jobs:
           echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| App ID | com.cleanz24.laundrycarspa |" >> $GITHUB_STEP_SUMMARY
-          echo "| Version | 1.0.3 (code 4) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | 1.0.4 (code 5) |" >> $GITHUB_STEP_SUMMARY
           echo "| Build # | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Artifact | cleanz24-release-${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
