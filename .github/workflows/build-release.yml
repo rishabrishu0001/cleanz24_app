@@ -1,0 +1,85 @@
+name: Build & Sign Release AAB
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  workflow_dispatch:   # Allow manual trigger from GitHub UI
+
+jobs:
+  build:
+    name: Build Signed Android App Bundle
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Node.js + npm install ─────────────────────────────────────────────
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      # ── 3. Build Vite production bundle ──────────────────────────────────────
+      - name: Build web assets (Vite)
+        run: npm run build
+        env:
+          VITE_API_URL: https://cleanz24-app.onrender.com
+
+      # ── 4. Sync dist -> Android assets via Capacitor ──────────────────────────
+      - name: Sync Capacitor to Android
+        run: npx cap sync android
+
+      # ── 5. Set up JDK 17 ─────────────────────────────────────────────────────
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # ── 6. Decode keystore from GitHub Secret -> file ─────────────────────────
+      - name: Decode release keystore
+        run: |
+          echo "${{ secrets.CLEANZ_KEYSTORE_BASE64 }}" | base64 --decode > android/app/cleanz24-release.keystore
+          ls -la android/app/cleanz24-release.keystore
+
+      # ── 7. Grant Gradle execute permission ───────────────────────────────────
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      # ── 8. Build signed release AAB ──────────────────────────────────────────
+      - name: Build signed release AAB
+        working-directory: android
+        run: ./gradlew bundleRelease
+        env:
+          CLEANZ_KEYSTORE_PASSWORD: ${{ secrets.CLEANZ_KEYSTORE_PASSWORD }}
+          CLEANZ_KEY_ALIAS: ${{ secrets.CLEANZ_KEY_ALIAS }}
+          CLEANZ_KEY_PASSWORD: ${{ secrets.CLEANZ_KEY_PASSWORD }}
+
+      # ── 9. Upload AAB as GitHub Actions artifact ─────────────────────────────
+      - name: Upload release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: cleanz24-release-${{ github.run_number }}
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      # ── 10. Print build summary ──────────────────────────────────────────────
+      - name: Build Summary
+        run: |
+          echo "## Build Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| App ID | com.cleanz24.laundrycarspa |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | 1.0.3 (code 4) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build # | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Artifact | cleanz24-release-${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download the AAB from the Artifacts section and upload to Google Play Console." >> $GITHUB_STEP_SUMMARY

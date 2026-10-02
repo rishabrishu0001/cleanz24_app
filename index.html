@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Cleanz24 - Laundry &amp; Carspa</title>
     <meta name="description" content="Cleanz24 - Professional laundry, dry cleaning, and car spa delivered to your doorstep. Schedule pickup online." />
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts — loaded non-blocking via CSS import so font failures never crash the app -->
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+    </style>
     <style>
       /* Inline loading screen — visible while 5MB JS bundle parses. Auto-hidden when React mounts. */
       #cleanz-loader {

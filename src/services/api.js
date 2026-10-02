@@ -1,27 +1,58 @@
 // In development, Vite proxies '/api' to local backend (http://localhost:5000).
-// In production / APK, points directly to the live Render backend.
-const API_ORIGIN = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) 
-  ? import.meta.env.VITE_API_URL.replace(/\/+$/, '') 
-  : (import.meta.env?.PROD ? 'https://cleanz24-app.onrender.com' : '');
+// In production / APK (Capacitor WebView), always points to the live Render backend.
+// We detect the APK/Capacitor context by checking the page origin — inside an APK,
+// the page is served from capacitor://localhost or https://localhost (not http://localhost:3000).
+const PRODUCTION_BACKEND = 'https://cleanz24-app.onrender.com';
+
+function resolveApiOrigin() {
+  // 1. Explicit env override (set in .env.production)
+  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL.replace(/\/+$/, '');
+  }
+  // 2. Capacitor / APK context: origin is capacitor://localhost or https://localhost
+  //    In this case relative '/api' won't work — always use the live backend.
+  if (typeof window !== 'undefined') {
+    const origin = window.location.origin || '';
+    const isCapacitor = origin.startsWith('capacitor://') ||
+                        origin.startsWith('ionic://') ||
+                        (origin === 'https://localhost') ||
+                        (origin === 'http://localhost' && !import.meta.env?.DEV) ||
+                        origin === 'null' ||
+                        origin === '';
+    if (isCapacitor) return PRODUCTION_BACKEND;
+  }
+  // 3. Vite dev server — use proxy ('/api' → localhost:5000)
+  return '';
+}
+
+const API_ORIGIN = resolveApiOrigin();
 const BASE_URL = API_ORIGIN ? `${API_ORIGIN}/api` : '/api';
 
 async function fetchJSON(endpoint, options = {}) {
+  // 10-second timeout prevents the app from hanging when Render backend is cold-starting.
+  // A hanging fetch in a Capacitor WebView can trigger the Android ANR watchdog → crash.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
   try {
     const res = await fetch(`${BASE_URL}${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
         ...(options.headers || {})
       },
+      signal: controller.signal,
       ...options
     });
+    clearTimeout(timeoutId);
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: res.statusText }));
       throw new Error(err.error || `HTTP error ${res.status}`);
     }
     return await res.json();
   } catch (error) {
-    console.warn(`API Error [${endpoint}]:`, error.message);
-    throw error;
+    clearTimeout(timeoutId);
+    const msg = error.name === 'AbortError' ? 'Request timed out (server may be starting up, please retry)' : error.message;
+    console.warn(`API Error [${endpoint}]:`, msg);
+    throw new Error(msg);
   }
 }
 
