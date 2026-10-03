@@ -49,20 +49,26 @@ jobs:
           echo "${{ secrets.CLEANZ_KEYSTORE_BASE64 }}" | base64 --decode > android/app/cleanz24-release.keystore
           ls -la android/app/cleanz24-release.keystore
 
-      # ── 7. Grant Gradle execute permission ───────────────────────────────────
+      # ── 7. Accept Android Licenses and Install SDK 36 ──────────────────────
+      - name: Accept Android Licenses and Install SDK 36
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" "build-tools;36.0.0" || true
+
+      # ── 8. Grant Gradle execute permission ───────────────────────────────────
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      # ── 8. Build signed release AAB ──────────────────────────────────────────
+      # ── 9. Build signed release AAB ──────────────────────────────────────────
       - name: Build signed release AAB
         working-directory: android
-        run: ./gradlew bundleRelease
+        run: ./gradlew bundleRelease --no-daemon --stacktrace
         env:
           CLEANZ_KEYSTORE_PASSWORD: ${{ secrets.CLEANZ_KEYSTORE_PASSWORD }}
           CLEANZ_KEY_ALIAS: ${{ secrets.CLEANZ_KEY_ALIAS }}
           CLEANZ_KEY_PASSWORD: ${{ secrets.CLEANZ_KEY_PASSWORD }}
 
-      # ── 9. Upload AAB as GitHub Actions artifact ─────────────────────────────
+      # ── 10. Upload AAB as GitHub Actions artifact ────────────────────────────
       - name: Upload release AAB
         uses: actions/upload-artifact@v4
         with:
@@ -70,7 +76,7 @@ jobs:
           path: android/app/build/outputs/bundle/release/app-release.aab
           retention-days: 30
 
-      # ── 10. Print build summary ──────────────────────────────────────────────
+      # ── 11. Print build summary ──────────────────────────────────────────────
       - name: Build Summary
         run: |
           echo "## Build Successful!" >> $GITHUB_STEP_SUMMARY
@@ -78,7 +84,7 @@ jobs:
           echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| App ID | com.cleanz24.laundrycarspa |" >> $GITHUB_STEP_SUMMARY
-          echo "| Version | 1.0.4 (code 5) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | 1.0.6 (code 7) |" >> $GITHUB_STEP_SUMMARY
           echo "| Build # | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Artifact | cleanz24-release-${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
