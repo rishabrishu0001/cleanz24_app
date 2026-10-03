@@ -24,12 +24,24 @@ app.use(express.json());
 // Connect to MongoDB
 connectDB();
 
+// Root Route — avoids "Cannot GET /" and helps uptime monitors
+app.get("/", (req, res) => {
+  res.json({
+    status: "ok",
+    app: "Cleanz24 Backend API",
+    version: "1.0.5",
+    message: "Cleanz24 API server is running. Use /api/* routes.",
+    health: "/api/health",
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Health Check
 app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
     app: "Cleanz24 Backend API",
-    version: "1.0.3-whatsapp-live",
+    version: "1.0.5",
     database: isMongoConnected ? "MongoDB (Connected)" : "Hybrid Mode (Awaiting MongoDB Connection)",
     timestamp: new Date().toISOString()
   });

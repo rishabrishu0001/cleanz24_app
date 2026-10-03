@@ -56,9 +56,13 @@ export default function App() {
   const [selectedStudio, setSelectedStudio] = useState(initialNearest.studioKey || 'noida41'); // shared across Home & Services
 
   // Show Blinkit-style location permission screen on first launch
-  const [showLocationPermission, setShowLocationPermission] = useState(
-    !localStorage.getItem('cleanz24_location_granted')
-  );
+  const [showLocationPermission, setShowLocationPermission] = useState(() => {
+    try {
+      return !localStorage.getItem('cleanz24_location_granted');
+    } catch {
+      return false; // If localStorage is blocked (Android private mode etc.), skip permission screen
+    }
+  });
 
   // Helper to load persisted user from localStorage
   const getInitialUser = () => {
@@ -353,10 +357,14 @@ export default function App() {
   useEffect(() => {
     const warmup = async () => {
       try {
+        // Use a safe AbortController fallback — AbortSignal.timeout is not supported on older Android WebViews
+        const _warmupController = new AbortController();
+        const _warmupTimer = setTimeout(() => _warmupController.abort(), 15000);
         await fetch(`https://cleanz24-app.onrender.com/api/health`, {
           method: 'GET',
-          signal: AbortSignal.timeout?.(15000) || (() => { const c = new AbortController(); setTimeout(() => c.abort(), 15000); return c.signal; })()
+          signal: _warmupController.signal
         });
+        clearTimeout(_warmupTimer);
         console.log('[Cleanz24] Backend warmed up successfully.');
       } catch {
         // Silent — warm-up failure does not affect UX
