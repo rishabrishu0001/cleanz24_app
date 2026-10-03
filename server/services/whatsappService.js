@@ -47,6 +47,7 @@ This code is valid for 5 minutes. For your account security, please do not share
         }
       };
 
+      const ctrl1 = new AbortController(); const t1 = setTimeout(() => ctrl1.abort(), 6000);
       let response = await fetch(`https://graph.facebook.com/v25.0/${phoneId}/messages`, {
         method: "POST",
         headers: {
@@ -54,8 +55,9 @@ This code is valid for 5 minutes. For your account security, please do not share
           "Content-Type": "application/json"
         },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(6000)
+        signal: ctrl1.signal
       });
+      clearTimeout(t1);
       let data = await response.json();
 
       // If button parameter mismatch occurs, retry template with body only
@@ -77,6 +79,7 @@ This code is valid for 5 minutes. For your account security, please do not share
             ]
           }
         };
+        const ctrl2 = new AbortController(); const t2 = setTimeout(() => ctrl2.abort(), 6000);
         const retryResp = await fetch(`https://graph.facebook.com/v25.0/${phoneId}/messages`, {
           method: "POST",
           headers: {
@@ -84,8 +87,9 @@ This code is valid for 5 minutes. For your account security, please do not share
             "Content-Type": "application/json"
           },
           body: JSON.stringify(bodyOnlyPayload),
-          signal: AbortSignal.timeout(6000)
+          signal: ctrl2.signal
         });
+        clearTimeout(t2);
         const retryData = await retryResp.json();
         if (!retryData.error) {
           data = retryData;
@@ -95,6 +99,7 @@ This code is valid for 5 minutes. For your account security, please do not share
       // If template not approved yet or text fallback needed, try text message
       if (data.error && payload.type === "template") {
         console.warn(`[WhatsApp Template Status/Error]:`, data.error.message, "- Trying text message fallback...");
+        const ctrl3 = new AbortController(); const t3 = setTimeout(() => ctrl3.abort(), 5000);
         let fbResponse = await fetch(`https://graph.facebook.com/v25.0/${phoneId}/messages`, {
           method: "POST",
           headers: {
@@ -108,8 +113,9 @@ This code is valid for 5 minutes. For your account security, please do not share
             type: "text",
             text: { preview_url: false, body: englishMessage }
           }),
-          signal: AbortSignal.timeout(5000)
+          signal: ctrl3.signal
         });
+        clearTimeout(t3);
         data = await fbResponse.json();
       }
 

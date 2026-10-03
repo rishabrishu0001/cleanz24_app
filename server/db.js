@@ -17,7 +17,10 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/cleanz24";
-const STORES_PATH = path.join(__dirname, "..", "src", "data", "stores.json");
+// STORES_PATH: check server/data/ first (Render), then src/data/ (local dev)
+const STORES_PATH = fs.existsSync(path.join(__dirname, "data", "stores.json"))
+  ? path.join(__dirname, "data", "stores.json")
+  : path.join(__dirname, "..", "src", "data", "stores.json");
 const DB_JSON_PATH = path.join(__dirname, "data", "db.json");
 
 export let isMongoConnected = false;
@@ -211,7 +214,9 @@ export async function connectDB() {
   try {
     console.log(`Connecting to MongoDB at: ${MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, "//$1:****@")} ...`);
     await mongoose.connect(MONGODB_URI, {
-      serverSelectionTimeoutMS: 4000
+      serverSelectionTimeoutMS: 8000,  // Increased from 4000 — handles Render cold-start latency
+      socketTimeoutMS: 30000,
+      connectTimeoutMS: 10000
     });
     isMongoConnected = true;
     console.log(" MongoDB Connected Successfully!");
