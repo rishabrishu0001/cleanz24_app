@@ -62,6 +62,15 @@ class AppErrorBoundary extends React.Component {
   }
 }
 
+// Catch any unhandled promise rejections or async errors outside React tree
+window.addEventListener('unhandledrejection', (event) => {
+  console.warn('[Cleanz24] Suppressed unhandled rejection:', event.reason);
+  if (event.preventDefault) event.preventDefault();
+});
+window.addEventListener('error', (event) => {
+  console.warn('[Cleanz24] Suppressed window error:', event.message);
+});
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <AppErrorBoundary>
     <App />
