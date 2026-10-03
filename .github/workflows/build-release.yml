@@ -16,37 +16,41 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── 2. Node.js + npm install ─────────────────────────────────────────────
-      - name: Set up Node.js 20
+      # ── 2. Set up JDK 21 (required by Capacitor 8 & Android Gradle Plugin) ──
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # ── 3. Node.js + npm install ─────────────────────────────────────────────
+      - name: Set up Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: 22
 
       - name: Install npm dependencies
-        run: npm ci
+        run: npm install
 
-      # ── 3. Build Vite production bundle ──────────────────────────────────────
+      # ── 4. Build Vite production bundle ──────────────────────────────────────
       - name: Build web assets (Vite)
         run: npm run build
         env:
           VITE_API_URL: https://cleanz24-app.onrender.com
 
-      # ── 4. Sync dist -> Android assets via Capacitor ──────────────────────────
+      # ── 5. Sync dist -> Android assets via Capacitor ──────────────────────────
       - name: Sync Capacitor to Android
         run: npx cap sync android
 
-      # ── 5. Set up JDK 21 (required by Capacitor 8) ───────────────────────────
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      # ── 6. Decode keystore from GitHub Secret -> file ─────────────────────────
+      # ── 6. Decode keystore if provided in secrets ────────────────────────────
       - name: Decode release keystore
         run: |
-          echo "${{ secrets.CLEANZ_KEYSTORE_BASE64 }}" | base64 --decode > android/app/cleanz24-release.keystore
+          if [ -n "${{ secrets.CLEANZ_KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.CLEANZ_KEYSTORE_BASE64 }}" | base64 --decode > android/app/cleanz24-release.keystore
+            echo "Keystore decoded from secret."
+          else
+            echo "Using repo-bundled release keystore."
+          fi
           ls -la android/app/cleanz24-release.keystore
 
       # ── 7. Accept Android Licenses and Install SDK 36 ──────────────────────
