@@ -29,7 +29,7 @@ app.get("/", (req, res) => {
   res.json({
     status: "ok",
     app: "Cleanz24 Backend API",
-    version: "1.0.6",
+    version: "1.0.7",
     message: "Cleanz24 API server is running. Use /api/* routes.",
     health: "/api/health",
     timestamp: new Date().toISOString()
@@ -41,7 +41,7 @@ app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
     app: "Cleanz24 Backend API",
-    version: "1.0.6",
+    version: "1.0.7",
     database: isMongoConnected ? "MongoDB (Connected)" : "Hybrid Mode (Awaiting MongoDB Connection)",
     timestamp: new Date().toISOString()
   });
