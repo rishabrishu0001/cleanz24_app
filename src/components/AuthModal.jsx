@@ -280,10 +280,14 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
     setError('');
     setLoading(true);
     try {
+      let res;
       if (otpChannel === 'whatsapp') {
-        await api.auth.sendWhatsAppOtp(rawPhone);
+        res = await api.auth.sendWhatsAppOtp(rawPhone);
       } else {
-        await api.auth.sendSmsOtp(rawPhone);
+        res = await api.auth.sendSmsOtp(rawPhone);
+      }
+      if (res?.channel) {
+        setOtpChannel(res.channel);
       }
     } catch (_) {
       // proceed anyway
@@ -372,10 +376,14 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onOpenAdmin
 
     setLoading(true);
     try {
+      let res;
       if (otpChannel === 'whatsapp') {
-        await api.auth.sendWhatsAppOtp(cleanPhone);
+        res = await api.auth.sendWhatsAppOtp(cleanPhone);
       } else {
-        await api.auth.sendSmsOtp(cleanPhone);
+        res = await api.auth.sendSmsOtp(cleanPhone);
+      }
+      if (res?.channel) {
+        setOtpChannel(res.channel);
       }
     } catch (_) {
       // proceed anyway — OTP will come via chosen channel
